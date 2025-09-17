@@ -2,6 +2,7 @@
   "name": "softwareengineeringcinemaproject",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:5000",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -12,6 +13,8 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.12.1",
     "bootstrap": "^5.3.8",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
