@@ -1,140 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Play, Star, Clock, Calendar } from 'lucide-react';
 
-// List of all movies 
-const movies = [
-  { 
-    id: 1, 
-    title: "The Lion King", 
-    genre: "Animation, Adventure, Family, Drama, Musical",
-    rating: 8.5,
-    description: "After the murder of his father, a young lion prince flees his kingdom only to learn the true meaning of responsibility and bravery.",
-    releaseDate: "06/24/1994",
-    showtimes: ["11:00 AM", "2:00 PM", "5:00 PM", "8:00 PM"],
-    poster: "/theLionKing.jpeg",
-    trailer: "https://www.youtube.com/embed/7TavVZMewpY",
-    duration: "88 minutes",
-    status: "Now running",
-  },
-  {
-    id: 2, 
-    title: "Barbie (2023)", 
-    genre: "Adventure, Comedy, Fantasy", 
-    rating: 7.2, 
-    description: "Barbie and Ken are having the time of their lives in the seemingly perfect world of Barbie Land. However, when they get a chance to go to the outside world, they soon discover the joys and perils of living among regular humans.", 
-    releaseDate: "07/21/2023", 
-    showtimes: ["12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"], 
-    poster: "/Barbie.jpeg", 
-    trailer: "https://www.youtube.com/embed/pBk4NYhWNMM", 
-    duration: "114 minutes", 
-    status: "Now running",
-  },
-  {
-    id: 3, 
-    title: "The Conjuring", 
-    genre: "Horror, Mystery, Thriller", 
-    rating: 7.5, 
-    description: "Paranormal investigators Ed and Lorraine Warren work to help a family terrorized by a dark presence in their farmhouse.", 
-    releaseDate: "07/19/2013", 
-    showtimes: ["1:00 PM", "4:00 PM", "7:00 PM", "10:00 PM"], 
-    poster: "/theConjuring.jpeg", 
-    trailer: "https://www.youtube.com/embed/k10ETZ41q5o", 
-    duration: "112 minutes", 
-    status: "Now running",
-  },
-  {
-    id: 4, 
-    title: "Titanic", 
-    genre: "Drama, Romance", 
-    rating: 7.8, 
-    description: "A seventeen-year-old aristocrat falls in love with a kind but poor artist aboard the luxurious, ill-fated R.M.S. Titanic.", 
-    releaseDate: "12/19/1997", 
-    showtimes: ["11:30 AM", "3:30 PM", "7:30 PM"], 
-    poster: "/Titanic.jpeg", 
-    trailer: "https://www.youtube.com/embed/2e-eXJ6HgkQ", 
-    duration: "194 minutes", 
-    status: "Now running",
-  },
-  {
-    id: 5, 
-    title: "Avatar: Fire & Ash", 
-    genre: "Action, Adventure, Fantasy, Sci-Fi", 
-    rating: 8.2, 
-    description: "Jake and Neytiri's family grapples with grief after Neteyam's death, encountering a new, aggressive Na'vi tribe, the Ash People, who are led by the fiery Varang, as the conflict on Pandora escalates and a new moral focus emerges.", 
-    releaseDate: "12/20/2025", 
-    showtimes: ["2:00 PM", "6:00 PM", "9:30 PM"], 
-    poster: "/Avatar.jpeg", 
-    trailer: "https://www.youtube.com/watch?v=Ma1x7ikpid8", 
-    duration: "180 minutes", 
-    status: "Coming soon",
-  },
-  {
-    id: 6, 
-    title: "IT (2017)", 
-    genre: "Horror, Thriller", 
-    rating: 7.3, 
-    description: "In the summer of 1989, a group of bullied kids band together to destroy a shape-shifting monster, which disguises itself as a clown and preys on the children of Derry, their small Maine town.", 
-    releaseDate: "09/08/2017", 
-    showtimes: ["1:30 PM", "4:30 PM", "7:30 PM", "10:30 PM"], 
-    poster: "/IT.jpeg", 
-    trailer: "https://www.youtube.com/embed/FnCdOQsX5kc", 
-    duration: "135 minutes", 
-    status: "Now running",
-  },
-  {
-    id: 7, 
-    title: "Harry Potter and the Half-Blood Prince", 
-    genre: "Adventure, Family, Fantasy, Mystery", 
-    rating: 7.6, 
-    description: "Hogwarts is no longer a safe haven for students. Dumbledore is more intent than ever on preparing Harry for a battle with Voldemort; meanwhile, love may be in the air, but tragedy looms, and Hogwarts may never be the same again.", 
-    releaseDate: "07/15/2009", 
-    showtimes: ["12:00 PM", "3:00 PM", "6:00 PM", "9:00 PM"], 
-    poster: "/harryPotter.jpeg", 
-    trailer: "https://www.youtube.com/embed/tAiy66Xrsz4", 
-    duration: "153 minutes", 
-    status: "Now running",
-  },
-  {
-    id: 8, 
-    title: "Lilo & Stitch (2025)", 
-    genre: "Animation, Adventure, Comedy, Family", 
-    rating: 7.8, 
-    description: "A lonely Hawaiian girl befriends a runaway alien, helping to mend her fragmented family.", 
-    releaseDate: "05/23/2025", 
-    showtimes: ["11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"], 
-    poster: "/liloStitch.jpeg", 
-    trailer: "https://www.youtube.com/watch?v=VWqJifMMgZE", 
-    duration: "95 minutes", 
-    status: "Coming soon",
-  },
-  {
-    id: 9, 
-    title: "Wednesday", 
-    genre: "Comedy, Horror, Mystery", 
-    rating: 8.1, 
-    description: "Follows Wednesday Addams' years as a student, when she attempts to master her emerging psychic ability, thwart a killing spree, and solve the mystery that embroiled her parents.", 
-    releaseDate: "11/23/2022", 
-    showtimes: ["2:30 PM", "5:30 PM", "8:30 PM"], 
-    poster: "/Wednesday.jpeg", 
-    trailer: "https://www.youtube.com/embed/Di310WS8zLk", 
-    duration: "45 minutes per episode", 
-    status: "Now running",
-  },
-  {
-    id: 10, 
-    title: "The Impossible (2012)", 
-    genre: "Drama, History, Thriller", 
-    rating: 7.5, 
-    description: "The story of a tourist family in Thailand caught in the destruction and chaotic aftermath of the 2004 Indian Ocean tsunami.", 
-    releaseDate: "10/09/2012", 
-    showtimes: ["1:00 PM", "4:00 PM", "7:00 PM"], 
-    poster: "/theImpossible.jpeg", 
-    trailer: "", 
-    duration: "114 minutes", 
-    status: "Now running",
-  }
-];
-
 // Movie cards
 const MovieCard = ({ movie, showTrailer = false, showMovieDetails, showBookingPage }) => (
   <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -437,6 +303,7 @@ const BookingPage = ({ selectedBooking, goHome }) => {
 
 function App() {
   // State management
+  const [movies, setMovies] = useState([]);   // <-- fetched movies here
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [currentPage, setCurrentPage] = useState('home');
@@ -444,25 +311,29 @@ function App() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Simulate database loading on component mount
+  // ✅ Fetch from backend on mount
   useEffect(() => {
     setLoading(true);
-    // Simulate database fetch delay
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    
-    return () => clearTimeout(timer);
+    fetch("http://localhost:8000/api/movies/")  // your Django endpoint
+      .then((res) => res.json())
+      .then((data) => {
+        setMovies(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching movies:", err);
+        setLoading(false);
+      });
   }, []);
 
-  // Extract genres from MOVIES
+  // ✅ Extract genres from fetched movies
   const genres = ['all', ...Array.from(new Set(
     movies.flatMap(m => 
       m.genre ? m.genre.split(',').map(g => g.trim()) : []
     )
   ))];
 
-  // Filtered movies based on search and genre
+  // ✅ Filtered movies based on search and genre
   const filteredMovies = movies.filter(movie => {
     const matchesTitle = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre = selectedGenre === 'all' || 
@@ -470,20 +341,17 @@ function App() {
     return matchesTitle && matchesGenre;
   });
 
-  // Handlers
+  // Handlers (no change)
   const handleSearch = (query) => setSearchQuery(query);
   const handleFilter = (genre) => setSelectedGenre(genre);
-
   const showMovieDetails = (movie) => {
     setSelectedMovie(movie);
     setCurrentPage('details');
   };
-
   const showBookingPage = (movie, showtime) => {
     setSelectedBooking({ movie, showtime });
     setCurrentPage('booking');
   };
-
   const goHome = () => {
     setCurrentPage('home');
     setSelectedMovie(null);
@@ -492,23 +360,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-blue-900 text-white py-4 shadow-lg">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200" onClick={goHome}>
-              Simply Movies
-            </h1>
-            <nav>
-              <button onClick={goHome} className="text-blue-200 hover:text-white transition-colors">
-                Home
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      {/* ... keep the rest of your code unchanged ... */}
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {currentPage === 'home' && (
           <HomePage 
@@ -523,7 +376,7 @@ function App() {
             showBookingPage={showBookingPage}
           />
         )}
-        
+
         {currentPage === 'details' && (
           <MovieDetailsPage 
             selectedMovie={selectedMovie}
@@ -531,7 +384,7 @@ function App() {
             showBookingPage={showBookingPage}
           />
         )}
-        
+
         {currentPage === 'booking' && (
           <BookingPage 
             selectedBooking={selectedBooking}
@@ -539,13 +392,6 @@ function App() {
           />
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6 mt-12">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Team 13 - Sprint 1 CES</p>
-        </div>
-      </footer>
     </div>
   );
 }
