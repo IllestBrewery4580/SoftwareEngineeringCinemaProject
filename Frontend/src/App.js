@@ -278,7 +278,7 @@ const BookingPage = ({ selectedBooking, goHome }) => {
         </div>
       </div>
 
-      {/* This part is for select seat/ price/ payment/ confirm booking */}
+      {/* Select seat/ price/ payment/ confirm booking */}
       <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
         <h3 className="text-lg font-semibold text-yellow-800 mb-2">This part will be developed late for:</h3>
         <ul className="text-yellow-700 space-y-1">
@@ -303,7 +303,7 @@ const BookingPage = ({ selectedBooking, goHome }) => {
 
 function App() {
   // State management
-  const [movies, setMovies] = useState([]);   // <-- fetched movies here
+  const [movies, setMovies] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [currentPage, setCurrentPage] = useState('home');
@@ -311,10 +311,10 @@ function App() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch from backend on mount
+  // Fetch from backend on mount
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/api/movies/")  // your Django endpoint
+    fetch("http://localhost:8000/api/movies/")
       .then((res) => res.json())
       .then((data) => {
         setMovies(data);
@@ -326,14 +326,14 @@ function App() {
       });
   }, []);
 
-  // ✅ Extract genres from fetched movies
+  // Extract genres from movies
   const genres = ['all', ...Array.from(new Set(
     movies.flatMap(m => 
       m.genre ? m.genre.split(',').map(g => g.trim()) : []
     )
   ))];
 
-  // ✅ Filtered movies based on search and genre
+  // Filtered movies based on search and genre
   const filteredMovies = movies.filter(movie => {
     const matchesTitle = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre = selectedGenre === 'all' || 
@@ -341,17 +341,20 @@ function App() {
     return matchesTitle && matchesGenre;
   });
 
-  // Handlers (no change)
+  // Handlers
   const handleSearch = (query) => setSearchQuery(query);
   const handleFilter = (genre) => setSelectedGenre(genre);
+  
   const showMovieDetails = (movie) => {
     setSelectedMovie(movie);
     setCurrentPage('details');
   };
+  
   const showBookingPage = (movie, showtime) => {
     setSelectedBooking({ movie, showtime });
     setCurrentPage('booking');
   };
+  
   const goHome = () => {
     setCurrentPage('home');
     setSelectedMovie(null);
@@ -360,8 +363,22 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* ... keep the rest of your code unchanged ... */}
 
+      <header className="bg-blue-900 text-white py-4 shadow-lg">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200" onClick={goHome}>
+                Simply Movies
+              </h1>
+              <nav>
+                <button onClick={goHome} className="text-blue-200 hover:text-white transition-colors">
+                  Home
+                </button>
+              </nav>
+            </div>
+          </div>
+        </header>
+    
       <main className="container mx-auto px-4 py-8">
         {currentPage === 'home' && (
           <HomePage 
@@ -392,6 +409,12 @@ function App() {
           />
         )}
       </main>
+
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; 2025 Team 13 - Sprint 1 CES</p>
+        </div>
+      </footer>
     </div>
   );
 }
