@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -90,15 +92,25 @@ WSGI_APPLICATION = 'ecinema.wsgi.application'
 # }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'cinema_db',
+#         'USER': 'postgres',
+#         'PASSWORD': 'root',  # change to your postgres password
+#         'HOST': 'localhost',   # or cloud host like Supabase/Aiven
+#         'PORT': '5432',
+#     }
+# }
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cinema_db',
-        'USER': 'postgres',
-        'PASSWORD': 'root',  # change to your postgres password
-        'HOST': 'localhost',   # or cloud host like Supabase/Aiven
-        'PORT': '5432',
-    }
+    'default': env.db(),  # reads DATABASE_URL from .env
 }
 
 
