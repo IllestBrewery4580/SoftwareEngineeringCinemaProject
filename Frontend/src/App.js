@@ -1,6 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import { Search, Filter, Play, Star, Clock, Calendar } from 'lucide-react';
 import LoginPage from './components/LoginPage';
+import CreateAccountPage from './components/CreateAccountPage';
 
 // Movie cards
 const MovieCard = ({ movie, showTrailer = false, showMovieDetails, showBookingPage }) => (
@@ -367,7 +368,13 @@ function App() {
     setSelectedMovie(null);
     setSelectedBooking(null);
   };
-  
+
+  const goCreatAcct = () => {
+    setCurrentPage('createAcct');
+    setSelectedMovie(null);
+    setSelectedBooking(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -418,8 +425,18 @@ function App() {
         )}
 
         {currentPage === 'login' && (
-          <LoginPage />
+          <div className='flex-col justify-items-center'>
+            <LoginPage />
+            <div className="bg-white p-6 rounded-lg shadow-md m-6">
+              <button onClick={goCreatAcct} className='hover:text-blue-700 transition-colors'>Don't have an account? Create one here!</button>
+            </div>
+          </div>
         )}
+
+         {currentPage === 'createAcct' && (
+          <CreateAccountPage />
+        )}
+
       </main>
 
       <footer className="bg-gray-800 text-white py-6 mt-12">
