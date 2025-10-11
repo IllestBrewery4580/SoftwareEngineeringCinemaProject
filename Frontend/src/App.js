@@ -374,6 +374,7 @@ function App() {
                 <button onClick={goHome} className="text-blue-200 hover:text-white transition-colors">
                   Home
                 </button>
+                <button className="text-blue-200 hover:text-white transition-colors">Login</button>
               </nav>
             </div>
           </div>
