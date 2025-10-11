@@ -374,14 +374,14 @@ function App() {
       <header className="bg-blue-900 text-white py-4 shadow-lg">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200" onClick={goHome}>
+              <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200 transition-colors" onClick={goHome}>
                 Simply Movies
               </h1>
               <nav>
-                <button onClick={goHome} className="text-blue-200 hover:text-white transition-colors">
+                <button onClick={goHome} className="text-blue-200 p-2 hover:text-white transition-colors">
                   Home
                 </button>
-                <button onClick={goLogin} className="text-blue-200 hover:text-white transition-colors">Login</button>
+                <button onClick={goLogin} className="text-blue-200 p-2 hover:text-white transition-colors">Login</button>
               </nav>
             </div>
           </div>
