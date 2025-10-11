@@ -10,8 +10,6 @@ export default function LoginPage () {
   const handlePassword = (password) => setPassword(password);
 
   const handleLogin = () => {
-    console.log(email);
-    console.log(password);
     if(email == "" || email == null){
       alert('Enter email');
     }
@@ -19,7 +17,7 @@ export default function LoginPage () {
       alert('Enter password');
     }
     if (email != null && password != null && email != "" && password != "") {
-      alert('yay');
+      alert('yay logged in!');
     }
 };
   
