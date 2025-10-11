@@ -1,7 +1,13 @@
 import React, { useState, useEffect} from 'react';
 
+
+
 export default function CreateAccountPage () {
-  return (
+  const handleCreateAcct = () => {
+    alert('Teehee not yet');
+    };
+  
+    return (
     <div className= "flex justify-center">
       <div className="bg-white p-6 pb-2 rounded-lg shadow-md">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -40,7 +46,7 @@ export default function CreateAccountPage () {
             />
         </div>
         <div className="flex flex-col md:flex-row gap-4 mb-6 justify-center">
-        <button className="bg-blue-700 pt-2 pb-2 pl-4 pr-4 rounded hover:text-white transition-colors">Create Account</button>
+        <button onClick={handleCreateAcct} className="bg-blue-700 pt-2 pb-2 pl-4 pr-4 rounded hover:text-white transition-colors">Create Account</button>
         </div>
       </div>
     </div>

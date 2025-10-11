@@ -426,7 +426,8 @@ function App() {
 
         {currentPage === 'login' && (
           <div className='flex-col justify-items-center'>
-            <LoginPage />
+            <LoginPage 
+            loginEmail={" "}/>
             <div className="bg-white p-6 rounded-lg shadow-md m-6">
               <button onClick={goCreatAcct} className='hover:text-blue-700 transition-colors'>Don't have an account? Create one here!</button>
             </div>
