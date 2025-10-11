@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { Search, Filter, Play, Star, Clock, Calendar } from 'lucide-react';
+import LoginPage from './components/LoginPage';
 
 // Movie cards
 const MovieCard = ({ movie, showTrailer = false, showMovieDetails, showBookingPage }) => (
@@ -361,6 +362,12 @@ function App() {
     setSelectedBooking(null);
   };
 
+  const goLogin = () => {
+    setCurrentPage('login');
+    setSelectedMovie(null);
+    setSelectedBooking(null);
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -374,7 +381,7 @@ function App() {
                 <button onClick={goHome} className="text-blue-200 hover:text-white transition-colors">
                   Home
                 </button>
-                <button className="text-blue-200 hover:text-white transition-colors">Login</button>
+                <button onClick={goLogin} className="text-blue-200 hover:text-white transition-colors">Login</button>
               </nav>
             </div>
           </div>
@@ -408,6 +415,10 @@ function App() {
             selectedBooking={selectedBooking}
             goHome={goHome}
           />
+        )}
+
+        {currentPage === 'login' && (
+          <LoginPage />
         )}
       </main>
 
