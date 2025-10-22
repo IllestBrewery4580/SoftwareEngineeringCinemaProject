@@ -1,7 +1,5 @@
 import React, { useState, useEffect} from 'react';
 
-
-
 export default function CreateAccountPage () {
     const [name, setName] = useState(null);
     const [email, setEmail] = useState(null);

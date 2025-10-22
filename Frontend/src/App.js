@@ -2,6 +2,7 @@ import React, { useState, useEffect} from 'react';
 import { Search, Filter, Play, Star, Clock, Calendar } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import CreateAccountPage from './components/CreateAccountPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
 
 // Movie cards
 const MovieCard = ({ movie, showTrailer = false, showMovieDetails, showBookingPage }) => (
@@ -375,6 +376,12 @@ function App() {
     setSelectedBooking(null);
   };
 
+  const goForgPs = () => {
+    setCurrentPage('forgotPassword');
+    setSelectedMovie(null);
+    setSelectedBooking(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -425,10 +432,13 @@ function App() {
         )}
 
         {currentPage === 'login' && (
-          <div className='flex-col justify-items-center'>
-            <LoginPage 
-            loginEmail={" "}/>
-            <div className="bg-white p-6 rounded-lg shadow-md m-6">
+          <div className='flex-col justify-items-center '>
+            <LoginPage />
+            <div className="bg-white p-6 rounded-lg shadow-md m-6 justify-items-center">
+              <div>
+              <button onClick={goForgPs} className='hover:text-blue-700 transition-colors justify-self-center'>Forgot password?</button>
+              </div>
+              <h1>---</h1>
               <button onClick={goCreatAcct} className='hover:text-blue-700 transition-colors'>Don't have an account? Create one here!</button>
             </div>
           </div>
@@ -436,6 +446,10 @@ function App() {
 
          {currentPage === 'createAcct' && (
           <CreateAccountPage />
+        )}
+
+        {currentPage === 'forgotPassword' && (
+          <ForgotPasswordPage />
         )}
 
       </main>
