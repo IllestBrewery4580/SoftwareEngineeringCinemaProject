@@ -6,17 +6,138 @@ This project is a web-based cinema application built using **Django** (backend) 
 ---
 
 ## Project Structure
+SoftwareEngineeringCinemaProject/
+|---Backend/ # Django backend
+| |---ecinema/
+|| |---accounts/ # Authentication and user management
+||| |---migrations
+|||| |---__init__.py
+|||| |---0001_initial.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---tests.py
+||| |---urls.py
+||| |---utils.py
+||| |---views.py
+|| |---booking
+||| |---migrations
+|||| |---__init__.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---tests.py
+||| |---views.py
+|| |---ecinema
+||| |---__init__.py
+||| |---asgi.py
+||| |---settings.py
+||| |---urls.py
+||| |---wsgi.py
+|| |---movie
+||| |---migrations
+|||| |---__init__.py
+|||| |---0001_initial.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---serializers.py
+||| |---tests.py
+||| |---views.py
+|| |---.env
+|| |---.env.example
+|| |---db.sqlite3
+|| |---manage.py
+| |---requirements.txt
+|---Frontend
+| |---public
+|| |---Avatar.jpeg
+|| |---Barbie.jpg
+|| |---cat.jpg
+|| |---favicon.ico
+|| |---harryPotter.jpeg
+|| |---index.html
+|| |---IT.jpeg
+|| |---liloStitch.jpeg
+|| |---logo192.png
+|| |---logo512.png
+|| |---manifest.json
+|| |---robots.txt
+|| |---theConjuring.jpeg
+|| |---theImpossible.jpeg
+|| |---theLionKing.jpeg
+|| |---Titanic.jpeg
+|| |---Wednesday.jpeg
+| |---src
+|| |---components
+||| |---CreateAccount.js
+||| |---ForgetPassword.js
+||| |---LoginPage.js
+||| |---LogoutButton.js
+||| |---MovieCard.js
+||| |---MovieFilter.js
+||| |---SearchBar.js
+|| |---pages
+||| |---Booking.js
+||| |---Home.js
+||| |---MovieDetails.js
+|| |---.env
+|| |---App.css
+|| |---App.js
+|| |---App.test.js
+|| |---Index.css
+|| |---index.js
+|| |---logo.svg
+|| |---reportWebVitals.js
+|| |---server.js
+|| |---setupTests.js
+| |---.gitignore
+| |---Avatar.jpeg
+| |---Barbie.jpeg
+| |---cat.jpeg
+| |---harryPotter.jpeg
+| |---IT.jpeg
+| |---liloStitch.jpeg
+| |---package-lock.json
+| |---package.json
+| |---postcss.config.js
+| |---README.md
+| |---tailwind.config.js
+| |---theConjuring.jpeg
+| |---theImpossible.jpeg
+| |---theLionKing.jpeg
+| |---Titanic.jpeg
+| |---Wednesday.jpeg
+|---venv
+|---.gitignore
+|---package-lock.json
+|---package.json
+|---README.md
+|---server.js
+|---SoftwareEngineeringCinemaProject.code-workspace2.code-workspace
 
 
 ---
 
 ## Features
 
+### Core Functionality
 - **User Registration & OTP Verification**: Secure registration with email verification.
 - **Login / Logout**: Session management with logout functionality.
 - **Movie Listings & Bookings**: Browse movies and make bookings.
-- **Responsive UI**: Clean, user-friendly interface.
+- **Movie Search & Filter**: Search movies by title or filter by genre.
+- **Booking Tickets**: Select showtime, number of seats, and book tickets.
+- **Responsive UI**: Clean, user-friendly interface for desktop and mobile.
 - **Secure Backend**: User data and passwords are stored securely, logout invalidates session.
+
+### Security & Non-Functional
+- **Secure Session Handling**: Logout invalidates the session correctly.
+- **Password & Payment Security**: Passwords and sensitive data are securely stored and encrypted.
+- **Email Notifications**: Users receive confirmation emails for registration and profile updates.
+- **UX / UI**: Clear guidance, positive prompts, error messages, and confirmation messages.
 
 ---
 
