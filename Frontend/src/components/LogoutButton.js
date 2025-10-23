@@ -8,24 +8,30 @@ function LogoutButton({ user, setUser }) {
         try {
             const res = await fetch('http://localhost:8000/accounts/logout/', {
                 method: 'GET',
-                credetials: 'include',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                },
             });
 
+            const data = await res.json(); // capture response from Django
+            console.log('Logout response:', data);
+
             if (res.ok) {
-                alert('You have been logged out successfully.');
+                alert(data.message || 'You have been logged out successfully.');
                 setUser(null); // clear frontend state
                 navigate("/login"); // redirect to login page
             } else {
-                alert('Logout failed. Please try again.');
+                alert(data.error || 'Logout failed. Please try again.');
             }
         } catch (err) {
-            console.error(err);
+            console.error('Logout fetch error:', err);
             alert("Logout failed. Please try again.");
         }
     };
 
     return (
-        <button onClick={handleLogout} class Name="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" >
+        <button onClick={handleLogout} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" >
             Logout
         </button>
     );
