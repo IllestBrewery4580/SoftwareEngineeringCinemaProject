@@ -372,7 +372,7 @@ function App() {
               <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200" onClick={goHome}>
                 Simply Movies
               </h1>
-              <nav>
+              <nav className="flex items-center space-x-4">
                 <button onClick={goHome} className="ml-4 text-blue-200 hover:text-white transition-colors">
                   Home
                 </button>
