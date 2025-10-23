@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "movie",
     'accounts',
+    'Logout',
     "corsheaders",
     'django.contrib.admin',
     'django.contrib.auth',

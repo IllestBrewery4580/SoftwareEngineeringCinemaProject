@@ -1,8 +1,6 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Play, Star, Clock, Calendar } from 'lucide-react';
-import LoginPage from './components/LoginPage';
-import CreateAccountPage from './components/CreateAccountPage';
-import ForgotPasswordPage from './components/ForgotPasswordPage';
+import LogoutButton from './components/LogoutButton';
 
 // Movie cards
 const MovieCard = ({ movie, showTrailer = false, showMovieDetails, showBookingPage }) => (
@@ -313,6 +311,7 @@ function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null); // new state for login status
 
   // Fetch from backend on mount
   useEffect(() => {
@@ -364,38 +363,20 @@ function App() {
     setSelectedBooking(null);
   };
 
-  const goLogin = () => {
-    setCurrentPage('login');
-    setSelectedMovie(null);
-    setSelectedBooking(null);
-  };
-
-  const goCreatAcct = () => {
-    setCurrentPage('createAcct');
-    setSelectedMovie(null);
-    setSelectedBooking(null);
-  };
-
-  const goForgPs = () => {
-    setCurrentPage('forgotPassword');
-    setSelectedMovie(null);
-    setSelectedBooking(null);
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
 
       <header className="bg-blue-900 text-white py-4 shadow-lg">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200 transition-colors" onClick={goHome}>
+              <h1 className="text-2xl font-bold cursor-pointer hover:text-blue-200" onClick={goHome}>
                 Simply Movies
               </h1>
               <nav>
-                <button onClick={goHome} className="text-blue-200 p-2 hover:text-white transition-colors">
+                <button onClick={goHome} className="ml-4 text-blue-200 hover:text-white transition-colors">
                   Home
                 </button>
-                <button onClick={goLogin} className="text-blue-200 p-2 hover:text-white transition-colors">Login</button>
+                <LogoutButton user={user} setUser={setUser} /> {/* <--- Add the logout button here */}
               </nav>
             </div>
           </div>
@@ -430,28 +411,6 @@ function App() {
             goHome={goHome}
           />
         )}
-
-        {currentPage === 'login' && (
-          <div className='flex-col justify-items-center '>
-            <LoginPage />
-            <div className="bg-white p-6 rounded-lg shadow-md m-6 justify-items-center">
-              <div>
-              <button onClick={goForgPs} className='hover:text-blue-700 transition-colors justify-self-center'>Forgot password?</button>
-              </div>
-              <h1>---</h1>
-              <button onClick={goCreatAcct} className='hover:text-blue-700 transition-colors'>Don't have an account? Create one here!</button>
-            </div>
-          </div>
-        )}
-
-         {currentPage === 'createAcct' && (
-          <CreateAccountPage />
-        )}
-
-        {currentPage === 'forgotPassword' && (
-          <ForgotPasswordPage />
-        )}
-
       </main>
 
       <footer className="bg-gray-800 text-white py-6 mt-12">

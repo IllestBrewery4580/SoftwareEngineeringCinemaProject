@@ -32,5 +32,6 @@ router.register(r'movies', MovieViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),   # API lives under /api/
-    path('accounts/', include('accounts.urls')),
+    path('accounts/', include('accounts.urls')),   # existing accounts app
+    path('accounts/', include('Logout.urls')),     # include Logout app URLs
 ]
