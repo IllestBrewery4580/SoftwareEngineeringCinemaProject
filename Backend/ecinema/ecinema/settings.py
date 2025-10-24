@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "movie",
     'accounts',
+    'booking',
     'Logout',
     "corsheaders",
     'django.contrib.admin',
@@ -132,6 +133,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
 # Internationalization

@@ -33,5 +33,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),   # API lives under /api/
     path('accounts/', include('accounts.urls')),   # existing accounts app
-    path('accounts/', include('Logout.urls')),     # include Logout app URLs
+    # path('accounts/', include('Logout.urls')),     # include Logout app URLs
 ]
