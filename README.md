@@ -1,70 +1,195 @@
-# Getting Started with Create React App
+# Software Engineering Cinema E-Booking Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
+This project is a web-based cinema application built using **Django** (backend) and **React** (frontend). Users can register, log in, search for movies, browse movies, book tickets, and log out. The project also demonstrates secure session handling, user authentication, and a responsive UI.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Project Structure
+SoftwareEngineeringCinemaProject/
+|---Backend/ # Django backend
+| |---ecinema/
+|| |---accounts/ # Authentication and user management
+||| |---migrations
+|||| |---__init__.py
+|||| |---0001_initial.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---tests.py
+||| |---urls.py
+||| |---utils.py
+||| |---views.py
+|| |---booking
+||| |---migrations
+|||| |---__init__.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---tests.py
+||| |---views.py
+|| |---ecinema
+||| |---__init__.py
+||| |---asgi.py
+||| |---settings.py
+||| |---urls.py
+||| |---wsgi.py
+|| |---movie
+||| |---migrations
+|||| |---__init__.py
+|||| |---0001_initial.py
+||| |---__init__.py
+||| |---admin.py
+||| |---apps.py
+||| |---models.py
+||| |---serializers.py
+||| |---tests.py
+||| |---views.py
+|| |---.env
+|| |---.env.example
+|| |---db.sqlite3
+|| |---manage.py
+| |---requirements.txt
+|---Frontend
+| |---public
+|| |---Avatar.jpeg
+|| |---Barbie.jpg
+|| |---cat.jpg
+|| |---favicon.ico
+|| |---harryPotter.jpeg
+|| |---index.html
+|| |---IT.jpeg
+|| |---liloStitch.jpeg
+|| |---logo192.png
+|| |---logo512.png
+|| |---manifest.json
+|| |---robots.txt
+|| |---theConjuring.jpeg
+|| |---theImpossible.jpeg
+|| |---theLionKing.jpeg
+|| |---Titanic.jpeg
+|| |---Wednesday.jpeg
+| |---src
+|| |---components
+||| |---CreateAccount.js
+||| |---ForgetPassword.js
+||| |---LoginPage.js
+||| |---LogoutButton.js
+||| |---MovieCard.js
+||| |---MovieFilter.js
+||| |---SearchBar.js
+|| |---pages
+||| |---Booking.js
+||| |---Home.js
+||| |---MovieDetails.js
+|| |---.env
+|| |---App.css
+|| |---App.js
+|| |---App.test.js
+|| |---Index.css
+|| |---index.js
+|| |---logo.svg
+|| |---reportWebVitals.js
+|| |---server.js
+|| |---setupTests.js
+| |---.gitignore
+| |---Avatar.jpeg
+| |---Barbie.jpeg
+| |---cat.jpeg
+| |---harryPotter.jpeg
+| |---IT.jpeg
+| |---liloStitch.jpeg
+| |---package-lock.json
+| |---package.json
+| |---postcss.config.js
+| |---README.md
+| |---tailwind.config.js
+| |---theConjuring.jpeg
+| |---theImpossible.jpeg
+| |---theLionKing.jpeg
+| |---Titanic.jpeg
+| |---Wednesday.jpeg
+|---venv
+|---.gitignore
+|---package-lock.json
+|---package.json
+|---README.md
+|---server.js
+|---SoftwareEngineeringCinemaProject.code-workspace2.code-workspace
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Features
 
-### `npm test`
+### Core Functionality
+- **User Registration & OTP Verification**: Secure registration with email verification.
+- **Login / Logout**: Session management with logout functionality.
+- **Movie Listings & Bookings**: Browse movies and make bookings.
+- **Movie Search & Filter**: Search movies by title or filter by genre.
+- **Booking Tickets**: Select showtime, number of seats, and book tickets.
+- **Responsive UI**: Clean, user-friendly interface for desktop and mobile.
+- **Secure Backend**: User data and passwords are stored securely, logout invalidates session.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Security & Non-Functional
+- **Secure Session Handling**: Logout invalidates the session correctly.
+- **Password & Payment Security**: Passwords and sensitive data are securely stored and encrypted.
+- **Email Notifications**: Users receive confirmation emails for registration and profile updates.
+- **UX / UI**: Clear guidance, positive prompts, error messages, and confirmation messages.
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation & Setup
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Backend (Django)
+1. Navigate to the backend folder:
+   ```bash
+   cd Backend
+2. Create and activate a virtual environment:
+   python3 -m venv venv
+   source venv/bin/activate     # macOS/Linux
+3. Install dependencies:
+   pip install -r requirements.txt
+4. Apply migrations:
+   python manage.py migrate
+5. Run server:
+   python manage.py runserver
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
+Frontend (React)
+1. Navigate to the Frontend folder:
+   cd Frontend
+2. Install dependencies:
+   npm install
+3. Start the development server:
+   npm start
+The frontend runs on http://localhost:3001 and communicates with the backend at http://localhost:8000.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Usage:
+1. Open the frontend in a browser.
+2. Register a new user or log in.
+3. Browse available movies and make bookings.
+4. Use the Logout button to end you session.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Notes:
+- Ensure both backend and frontend servers are running simultaneously.
+- The logout functionality has been implemented using an API call to the backend that ends the session and redirects to the login page.
+- API endpoints:
+-   GET /accounts/logout/ -> Logs out the current user.
+-   POST /accounts/register/ -> Registers a new user.
+-   POST /accounts/login/ -> Authenticates a user.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Team:
+- Mallika Suyal (Team Leader, Frontend primary member, & Backend secondary member)
+- Susan Awad
+- Isabel Beck
+- My Phuong Ly
+- Sai
