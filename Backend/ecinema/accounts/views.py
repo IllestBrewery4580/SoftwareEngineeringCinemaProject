@@ -5,9 +5,6 @@ from django.core.mail import send_mail
 from django.contrib.auth import authenticate, login, logout
 from .models import EmailOTP
 from .utils import generate_otp
-
-# Create your views here.
-
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
