@@ -1,7 +1,9 @@
+'use client'
 import React from 'react';
+import Link from 'next/link'
 import { useNavigate } from "react-router-dom"; // if using react-router
 
-function LogoutButton({ user, setUser }) {
+function LogoutButton({ setIsLoggedIn }) {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -19,7 +21,7 @@ function LogoutButton({ user, setUser }) {
 
             if (res.ok) {
                 alert(data.message || 'You have been logged out successfully.');
-                setUser(null); // clear frontend state
+                setIsLoggedIn(false); // clear frontend state
                 navigate("/login"); // redirect to login page
             } else {
                 alert(data.error || 'Logout failed. Please try again.');
