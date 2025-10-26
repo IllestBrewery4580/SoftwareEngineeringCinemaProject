@@ -6,7 +6,6 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, include('Logout.urls')), # include Logout app URLS
 
     # Password routes
     path('changepassword/', views.change_password, name='change_password'),
