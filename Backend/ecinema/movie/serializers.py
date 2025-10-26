@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from .models import Movie, MovieShow
 
-class MovieSerializer(serializers.ModelSerializer):
+class MovieShowSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Movie
-        fields = '__all__'
+        model = MovieShow
+        fields = ['id', 'show_start_time', 'auditorium', 'no_of_available_seats']
 
 class MovieSerializer(serializers.ModelSerializer):
     showtimes = serializers.SerializerMethodField()
