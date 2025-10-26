@@ -128,7 +128,7 @@ def add_payment(request):
 @csrf_exempt
 @login_required
 def change_password(request):
-    if request.emthod == 'POST':
+    if request.method == 'POST':
         data = json.loads(request.body)
         old_password = data.get('oldPassword')
         new_password = data.get('newPassword')
@@ -192,8 +192,28 @@ def update_profile(request):
         data = json.loads(request.body)
         user = request.user
         user.first_name = data.get('fname', user.first_name)
-        user.last_naame = data.get('lname', user.last_name)
+        user.last_name = data.get('lname', user.last_name)
         user.phone = data.get('phone', getattr(user, 'phone', ''))
         user.save()
         return JsonResponse({'message': 'Profile updated successfully'})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+def api_verify_otp(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        entered_otp = data.get('otp')
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({'status':'error','message':'Session expired. Please register again.'})
+        user = User.objects.get(id=user_id)
+        otp_record = EmailOTP.objects.get(user=user)
+        if otp_record.otp == entered_otp:
+            otp_record.is_verified = True
+            otp_record.save()
+            user.is_active = True
+            user.save()
+            return JsonResponse({'status':'success','message':'Email verified sucesssfully!'})
+        else:
+            return JsonResponse({'status':'error','message':'Invalid OTP'})
+    return JsonResponse({'status':'error','message':'Invalid request method'})
