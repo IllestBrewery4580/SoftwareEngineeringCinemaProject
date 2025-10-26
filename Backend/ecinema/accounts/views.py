@@ -3,11 +3,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.contrib.auth import authenticate, login, update_session_auth_hash
+from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.middleware.csrf import get_token
 from django.contrib.auth.decorators import login_required
-from .models import EmailOTP, Address, Payment
+from .models import EmailOTP, BillingAddress, Account
 from .utils import generate_otp
 import json
 
@@ -93,13 +95,12 @@ def login_view(request):
 def add_address(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        address = Address.objects.create(
+        address = BillingAddress.objects.create(
             user=request.user,
             street=data.get('street'),
             city=data.get('city'),
             state=data.get('state'),
             postal_code=data.get('postal_code'),
-            country=data.get('country')
         )
         return JsonResponse({'message': 'Address added successfully', 'address_id': address.id})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
@@ -110,11 +111,11 @@ def add_payment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         try:
-            address = Address.objects.get(id=data.get('address_id'), user=request.user)
-        except Address.DoesNotExist:
+            address = BillingAddress.objects.get(id=data.get('address_id'), user=request.user)
+        except BillingAddress.DoesNotExist:
             return JsonResponse({'error': 'Address not found'}, status=404)
         
-        Payment.objects.create(
+        Account.objects.create(
             user=request.user,
             card_number=data.get('card_number'),
             expiry_date=data.get('expiry_date'),
@@ -181,7 +182,7 @@ def get_profile(request):
             'last_name': user.last_name,
             'email': user.email,
             'phone': getattr(user, 'phone', ''), # if you store phone in a custom field
-            'account_data': list(Payment.objects.filter(user=user).values()) 
+            'account_data': list(Account.objects.filter(user=user).values()) 
         }
         return JsonResponse(profile_data)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
@@ -218,3 +219,13 @@ def api_verify_otp(request):
         else:
             return JsonResponse({'status':'error','message':'Invalid OTP'})
     return JsonResponse({'status':'error','message':'Invalid request method'})
+
+def logout_view(request):
+    logout(request)
+    response = JsonResponse({'message': 'Logged out seccessfully'})
+    return response
+
+@ensure_csrf_cookie
+def getCSRFToken(request):
+    csrfToken = get_token(request)
+    return JsonResponse({'csrfToken': csrfToken})
