@@ -10,6 +10,19 @@ const MovieDetailsPage = ({ selectedMovie, showBookingPage }) => {
   
   if (!selectedMovie) return null;
 
+  const casts = selectedMovie.cast ? selectedMovie.cast.split(',').map(g => g.trim()).join(" • ") : []
+  
+  var rated = null;
+  if(selectedMovie.rating == 1) {
+    rated = "G"
+  } else if (selectedMovie.rating == 2) {
+    rated = "PG"
+  } else if (selectedMovie.rating == 3) {
+    rated = "PG-13"
+  } else {
+    rated = "R"
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="md:flex">
@@ -32,21 +45,30 @@ const MovieDetailsPage = ({ selectedMovie, showBookingPage }) => {
           <div className="flex items-center mb-4 space-x-4">
             <span className="flex items-center">
               <Star className="w-5 h-5 text-yellow-500 mr-1" />
-              {selectedMovie.rating}
+              {selectedMovie.review_score}
             </span>
             <span className="text-gray-600">{selectedMovie.genre}</span>
-            <span className="text-gray-600">{selectedMovie.duration}</span>
+            <span className="text-gray-600">• {selectedMovie.duration} minutes</span>
+            <span className="text-gray-600">• {rated}</span>
+          </div>
+
+          <div>
+            <span className="text-gray-600 font-bold">Producer:{" "}</span>
+            <span className="text-gray-600">{selectedMovie.producer}</span>
+            <br></br>
+            <span className="text-gray-600 font-bold">Cast:{" "}</span>
+            <span className="text-gray-600">{casts}</span>
           </div>
           
           <p className="text-gray-700 mb-6 leading-relaxed">{selectedMovie.description}</p>
           
           {/* Trailer Section */}
-          {selectedMovie.trailer && (
+          {selectedMovie.trailer_link && (
             <div className="mb-6">
               <h3 className="text-xl font-semibold mb-3">Watch Trailer</h3>
               <div className="aspect-video">
                 <iframe
-                  src={selectedMovie.trailer}
+                  src={selectedMovie.trailer_link}
                   title={`${selectedMovie.title} Trailer`}
                   className="w-full h-full rounded-lg"
                   frameBorder="0"
