@@ -1,9 +1,7 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate, login, logout
-from .models import EmailOTP
+from .models import EmailOTP, Account, BillingAddress
 from .utils import generate_otp
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -19,11 +17,12 @@ def register(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         username = data.get('fname')
-        email = data.get('email')  # or email
+        email = data.get('email')
         password = data.get('password')
-        fname = data.get('fname')  # or email
+        fname = data.get('fname')
         lname = data.get('lname')
 
+        User = get_user_model()
         if User.objects.filter(email=email).exists():
             return JsonResponse({'status': 'error', 'message': 'Email already exists. Please try again.'})
 
@@ -56,6 +55,7 @@ def verify_otp(request):
         if not user_id:
             return JsonResponse({'status': 'error', 'message': 'Session expired. Please register again.'}, status=400)
 
+        User = get_user_model()
         user = User.objects.get(id=user_id)
         otp_record = EmailOTP.objects.get(user=user)
 
@@ -87,6 +87,7 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
+                request.session['user_id'] = user.id
                 return JsonResponse({'status': 'success', 'message': 'Login successful'})
             else:
                 return JsonResponse({'status': 'error', 'message': 'Please verify your email first.'}, status=403)
@@ -98,13 +99,56 @@ def login_view(request):
 @login_required
 def get_profile(request):
     user = request.user
+    try:
+        account = Account.objects.get(user=user)
+        billing = BillingAddress.objects.get(card=account)
+        account_data = {
+            "card_no": account.card_no,
+            "card_type": account.card_type,
+            "expiration_date": account.expiration_date.strftime("%Y-%m"),
+            "billing_address": {
+                "address_line": billing.address_line,
+                "city": billing.city,
+                "state": billing.state,
+                "zipcode": billing.zipcode,
+                "country": billing.country,
+            }
+        }
+    except (Account.DoesNotExist, BillingAddress.DoesNotExist):
+        account_data = []
+
     profile_data = {
-        'name': user.username,
         'email': user.email,
         'password': user.password,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'phone': user.phone,
+        'account_data': account_data
     }
 
     return JsonResponse(profile_data)
+
+def update_profile(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_id = request.session.get('user_id')
+        fname = data.get('fname')
+        lname = data.get('lname')
+        phone = data.get('phone')
+
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
+        
+        user.first_name = fname
+        user.last_name = lname
+        user.phone = phone
+        user.save()
+        return JsonResponse({'status': 'success', 'message': 'Successfully updated profile!'}, status=200)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
 
 @login_required
 def change_password(request):
