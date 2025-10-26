@@ -7,6 +7,19 @@ const BookingPage = ({ selectedBooking }) => {
       navigate('/');
   }
 
+  var rated = null;
+  if(selectedBooking.movie.rating == 1) {
+    rated = "G"
+  } else if (selectedBooking.movie.rating == 2) {
+    rated = "PG"
+  } else if (selectedBooking.movie.rating == 3) {
+    rated = "PG-13"
+  } else {
+    rated = "R"
+  }
+
+  const date = (selectedBooking.showtime).split("•")[0];
+
   if (!selectedBooking) return null;
 
   return (
@@ -31,9 +44,9 @@ const BookingPage = ({ selectedBooking }) => {
           />
           <div>
             <h2 className="text-2xl font-bold mb-2">{selectedBooking.movie.title}</h2>
-            <p className="text-gray-600 mb-1">{selectedBooking.movie.genre} • ⭐ {selectedBooking.movie.rating}</p>
+            <p className="text-gray-600 mb-1">{rated} • {selectedBooking.movie.genre} • ⭐ {selectedBooking.movie.review_score}</p>
             <p className="text-lg font-semibold text-blue-600">Showtime: {selectedBooking.showtime}</p>
-            <p className="text-gray-600">Duration: {selectedBooking.movie.duration}</p>
+            <p className="text-gray-600">Duration: {selectedBooking.movie.duration} minutes</p>
           </div>
         </div>
       </div>
@@ -41,12 +54,7 @@ const BookingPage = ({ selectedBooking }) => {
       {/* Booking Form (UI Only - No Logic) */}
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <h3 className="text-xl font-semibold mb-4">Select Date</h3>
-          <input 
-            type="date" 
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            defaultValue={new Date().toISOString().split('T')[0]}
-          />
+          <h3 className="text-xl font-semibold mb-4">Select Date: {date}</h3>
         </div>
         
         <div>
