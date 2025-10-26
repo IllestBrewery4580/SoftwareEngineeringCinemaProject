@@ -1,17 +1,17 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import LoginPage from '../components/LoginPage';
-import CreateAccountPage from '../components/CreateAccountPage';
-import Profile from '../components/Profile';
-import HomePage from '../components/HomePage';
-import BookingPage from '../components/BookingPage';
-import MovieDetailsPage from '../components/MovieDetailsPage';
-import NewPassword from '../components/NewPassword';
-import ForgotPasswordPage from '../components/ForgotPasswordPage';
-import ResetPassword from '../components/ResetPassword';
-import Confirmation from '../components/Confirmation'
-import ForgotVerification from '../components/ForgotVerification';
+import LoginPage from './components/LoginPage';
+import CreateAccountPage from './components/CreateAccountPage';
+import Profile from './components/Profile';
+import HomePage from './components/HomePage';
+import BookingPage from './components/BookingPage';
+import MovieDetailsPage from './components/MovieDetailsPage';
+import NewPassword from './components/NewPassword';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ResetPassword from './components/ResetPassword';
+import Confirmation from './components/Confirmation'
+import ForgotVerification from './components/ForgotVerification';
 
 function App() {
   // State management
