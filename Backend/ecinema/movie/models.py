@@ -9,6 +9,7 @@ class USRating(models.Model):
 
 class Movie(models.Model):
     title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
     cast = models.TextField()
     genre = models.CharField(max_length=50)
     producer = models.CharField(max_length=100)
