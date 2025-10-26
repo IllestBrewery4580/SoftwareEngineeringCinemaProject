@@ -1,36 +1,23 @@
 'use client'
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCookie } from '../utils/csrf';
 
  const Profile = () => {
     const [fname, setFname] = useState('');
     const [lname, setLname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [cardNum, setCardNum] = useState('');
-    const [cardExp, setCardExp] = useState('');
-    const [cardCVV, setCardCVV] = useState('');
     const [address, setAddress] = useState('');
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [zipcode, setZipcode] = useState('');
     const [promotion, setPromotion] = useState(false);
+    const [methods, setMethods] = useState([]);
 
     const handleFname = (fname) => setFname(fname);
     const handleLname = (lname) => setLname(lname);
     const handlePhone = (phone) => setPhone(phone);
-    const handleCardNum = (cardNum) => setCardNum(cardNum);
-    const handleCardExp = (event) => {
-        let value = event.target.value;
-        value = value.replace(/\D/g, '').substring(0, 6);
-
-        if (value.length > 1) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 6);
-        }
-
-        setCardExp(value);
-    };
-    const handleCardCVV = (cardCVV) => setCardCVV(cardCVV);
     const handleAddress = (address) => setAddress(address);
     const handleCity = (city) => setCity(city);
     const handleState = (state) => setState(state);
@@ -38,7 +25,6 @@ import { useNavigate } from 'react-router-dom';
     const handlePromotion = () => {
         setPromotion(!promotion);
     }
-    const [methods, setMethods] = useState([]);
 
     const navigate = useNavigate();
     const handleGoBack = () => {
@@ -51,24 +37,37 @@ import { useNavigate } from 'react-router-dom';
 
     const addNewMethod = () => {
         if (methods.length < 3) {
+            let id = methods.length + 1;
             setMethods([...methods, {
+                id: id,
+                cardType:'',
                 cardNum:'', 
-                cardExp: '', 
-                cardCVV: ''
+                cardExp:'', 
+                cardCVV:''
             }]);
         }
     }
 
     const removeMethod = (id) => {
-        if (methods.length > 1) {
+        if (methods.length > 0) {
             setMethods(methods.filter(method => method.id !== id));
-        } else if (methods.length === 1) {
-            setMethods([{
-                cardNum:'',
-                cardExp:'',
-                cardCVV:''
-            }]);
         }
+    }
+
+    const handleMethodChange = (id, field, value) => {
+        if (field === 'cardExp') {
+            value = value.replace(/\D/g, '').substring(0, 6);
+
+            if (value.length > 1) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 6);
+        }
+
+        }
+        setMethods(prevMethods => 
+            prevMethods.map(method =>
+                method.id === id ? {...method, [field]: value} : method
+            )
+        )
     }
 
     useEffect(() => {
@@ -84,43 +83,47 @@ import { useNavigate } from 'react-router-dom';
         return res.json();
         })
         .then((data) => {
+            console.log("Data: ", data);
             setFname(data.first_name);
             setLname(data.last_name);
-            console.log("Data: ", data);
             setEmail(data.email)
+            setPhone(data.phone)
+            setMethods(data.account_data)
         })
         .catch((err) => {
             console.error("Error fetching profile:", err);
         });
     }, []);
 
-    const handleSubmit = async() => {
-        const getMonth = cardExp.substring(0,2);
-        const month = parseInt(getMonth);
-        const getYear = cardExp.substring(3,7);
-        const year = parseInt(getYear);
+    const getCSRFToken = async () => {
+    await fetch("http://localhost:8000/accounts/csrf/", {
+      method: "GET",
+      credentials: "include",
+    });
+  };
 
+    const handleSubmit = async() => {
         if (fname === '' || phone === '') {
             alert("Please enter all required fields indicated with an astrerisk (*).");
-        } else if (month < 1 || month > 12 || year < 2025 || year > 2035) {
-            alert("Invalid expiration date. Please try again.")
         } else {
-            const formData = new URLSearchParams();
-            formData.append("username", fname);
-            formData.append("email", email);
-
             try {
-                const response = await fetch("http://localhost:8000/accounts/profile/", {
+                await getCSRFToken();
+                const csrftoken = getCookie("csrftoken");
+
+                const response = await fetch("http://localhost:8000/accounts/updateprofile/", {
                     method: "POST",
                     headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken,
                     },
-                    body: formData.toString(),
+                    body: JSON.stringify({ fname, lname, phone }),
                     credentials:'include',
                 });
-
+                const data = await response.json()
                 if(response.ok) {
                     alert("Your profile has been updated!");
+                } else {
+                    alert(data.message)
                 }
             } catch (err) {
                 console.error("Profile error:", err);
@@ -175,11 +178,11 @@ import { useNavigate } from 'react-router-dom';
                 <hr className="pb-6 "></hr>
                 <div>
                 {methods.length > 0 ? (
-                    methods.map((method, id) => (
-                    <div className="border py-2 rounded-lg shadow-md mb-4">
+                    methods.map((method) => (
+                    <div key={method.id} className="border py-2 rounded-lg shadow-md mb-4">
                         <div className='flex flex-row justify-between px-10'>
                         <div className='flex flex-row'>
-                            <h1 className="pb-2 text-center">Payment Method {id + 1}</h1>
+                            <h1 className="pb-2 text-center">Payment Method {method.id}</h1>
                             <h1 className='px-2'>-</h1>
                             <div className='inline-block text-center px-2'>
                                 <input type="radio" id="credit" name="type" value="credit"/>
@@ -192,7 +195,7 @@ import { useNavigate } from 'react-router-dom';
                         </div>
                         <button 
                             type="button" 
-                            onClick={() => removeMethod(id)}
+                            onClick={() => removeMethod(method.id)}
                             className="justify-right align-right right-2 top-2 text-gray-500 hover:text-red-500">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18"></path>
@@ -204,23 +207,23 @@ import { useNavigate } from 'react-router-dom';
                             <input
                                 type="text"
                                 placeholder="Card Number"
-                                value={cardNum}
-                                onChange={(e) => handleCardNum(e.target.value)}
+                                value={method.cardNum}
+                                onChange={(e) => handleMethodChange(method.id, 'cardNum', e.target.value)}
                                 className="text-center w-fill pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="Expiration Date (MM/YYYY)"
                                 maxLength={7}
-                                value={cardExp}
-                                onChange={(e) => handleCardExp(e.target.value)}
+                                value={method.cardExp}
+                                onChange={(e) => handleMethodChange(method.id, 'cardExp', e.target.value)}
                                 className="text-center pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="CVV"
-                                value={cardCVV}
-                                onChange={(e) => handleCardCVV(e.target.value)}
+                                value={method.cardCVV}
+                                onChange={(e) => handleMethodChange(method.id, 'cardCVV', e.target.value)}
                                 className="text-center pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             
@@ -231,7 +234,7 @@ import { useNavigate } from 'react-router-dom';
                             <input
                                 type="text"
                                 placeholder="Address Line"
-                                value={address}
+                                value={method.address}
                                 onChange={(e) => handleAddress(e.target.value)}
                                 className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
@@ -240,21 +243,21 @@ import { useNavigate } from 'react-router-dom';
                             <input
                                 type="text"
                                 placeholder="City"
-                                value={city}
+                                value={method.city}
                                 onChange={(e) => handleCity(e.target.value)}
                                 className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="State"
-                                value={state}
+                                value={method.state}
                                 onChange={(e) => handleState(e.target.value)}
                                 className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="Zipcode"
-                                value={zipcode}
+                                value={method.zipcode}
                                 onChange={(e) => handleZipcode(e.target.value)}
                                 className="text-center w-1/4 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
