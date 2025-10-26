@@ -28,6 +28,7 @@ from movie.views import MovieViewSet
 
 router = DefaultRouter()
 router.register(r'movies', MovieViewSet)
+router.register(r'showtimes', MovieShowViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,3 +36,6 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),   # existing accounts app
     # path('accounts/', include('Logout.urls')),     # include Logout app URLs
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
