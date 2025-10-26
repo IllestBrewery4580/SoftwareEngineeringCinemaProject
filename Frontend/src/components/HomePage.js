@@ -3,8 +3,8 @@ import { Search, Filter } from 'lucide-react';
 import MovieCard from './MovieCard';
 
 const HomePage = ({ searchQuery, handleSearch, selectedGenre, handleFilter, genres, filteredMovies, loading, showMovieDetails, showBookingPage }) => {
-  const currentlyRunning = filteredMovies.filter(movie => movie.status === 'Now running');
-  const comingSoon = filteredMovies.filter(movie => movie.status === 'Coming soon');
+  const currentlyRunning = filteredMovies.filter(movie => movie.showtimes.length > 0);
+  const comingSoon = filteredMovies.filter(movie => movie.showtimes.length === 0);
 
   return (
     <div className="space-y-8">
