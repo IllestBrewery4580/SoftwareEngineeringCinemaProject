@@ -6,10 +6,14 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('csrf/', views.getCSRFToken, name='getCSRFToken'),
 
     # Password routes
+    path('forgotpassword/', views.forgot_password, name='forgot_password'),
     path('changepassword/', views.change_password, name='change_password'),
     path('newpassword/', views.reset_password, name='reset_password'),
+    path('verify-otp-pass/', views.verify_otp_pass, name='verify_otp_pass'),
 
     # Profile routes
     path('profile/', views.get_profile, name='get_profile'),
