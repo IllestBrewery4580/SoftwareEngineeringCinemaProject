@@ -1,7 +1,5 @@
 
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
 from django.http import JsonResponse
@@ -9,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from .models import EmailOTP, BillingAddress, Account
 from .utils import generate_otp
 import json
@@ -17,15 +16,18 @@ import json
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
+        data = json.loads(request.body)
+        username = data.get('fname')
+        email = data.get('email')
+        password = data.get('password')
+        fname = data.get('fname')
+        lname = data.get('lname')
 
+        User = get_user_model()
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered.')
-            return redirect('register')
+            return JsonResponse({'status': 'error', 'message': 'Email already exists. Please try again.'})
 
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = User.objects.create_user(username=username, email=email, password=password, first_name=fname, last_name=lname)
         user.is_active = False  # inactive until email verification
         user.save()
 
@@ -41,21 +43,21 @@ def register(request):
         )
 
         request.session['user_id'] = user.id
-        messages.success(request, 'An OTP has been sent to your email.')
-        return redirect('verify_otp')
+        return JsonResponse({'status': 'success', 'message': 'An OTP has been sent to your email.'}, status=200)
 
-    return render(request, 'accounts/register.html')
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
 
 
 def verify_otp(request):
     if request.method == 'POST':
-        entered_otp = request.POST['otp']
+        data = json.loads(request.body)
+        entered_otp = data.get('otp')
         user_id = request.session.get('user_id')
 
         if not user_id:
-            messages.error(request, 'Session expired. Please register again.')
-            return redirect('register')
+            return JsonResponse({'status': 'error', 'message': 'Session expired. Please register again.'}, status=400)
 
+        User = get_user_model()
         user = User.objects.get(id=user_id)
         otp_record = EmailOTP.objects.get(user=user)
 
@@ -64,30 +66,38 @@ def verify_otp(request):
             otp_record.save()
             user.is_active = True
             user.save()
-            messages.success(request, 'Email verified successfully! You can now log in.')
-            return redirect('login')
+            return JsonResponse({'status': 'success', 'message': 'Email verified successfully! You can now log in.'}, status=200)
         else:
-            messages.error(request, 'Invalid OTP. Please try again.')
-            return redirect('verify_otp')
+            return JsonResponse({'status': 'error', 'message': 'Invalid OTP. Please try again.'}, status=400)
 
-    return render(request, 'accounts/verify_otp.html')
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
 
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        data = json.loads(request.body)
+        email = data.get('email')  # or email
+        password = data.get('password')
+
+        user = get_user_model()
+        try:
+            user_info = user.objects.get(email=email)
+            username = user_info.username
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User does not exist!'})
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return redirect('home')  # change to your home URL
+                request.session['user_id'] = user.id
+                return JsonResponse({'status': 'success', 'message': 'Login successful'})
             else:
-                messages.error(request, 'Please verify your email first.')
+                return JsonResponse({'status': 'error', 'message': 'Please verify your email first.'}, status=403)
         else:
-            messages.error(request, 'Invalid credentials.')
-    return render(request, 'accounts/login.html')
+            return JsonResponse({'status': 'error', 'message': 'Invalid credentials.'}, status=401)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
 
 # --------------------------- New Address & Payment Views -----------------------
 @csrf_exempt
@@ -201,7 +211,7 @@ def update_profile(request):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 @csrf_exempt
-def api_verify_otp(request):
+def verify_otp_pass(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         entered_otp = data.get('otp')
