@@ -137,6 +137,29 @@ def add_payment(request):
 
 # ------------------------- Password Management ------------------------------
 
+def forgot_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            otp = generate_otp()
+            EmailOTP.objects.create(user=user, otp=otp)
+
+            send_mail(
+                'Reset your password',
+                f'Here\'s your otp code {otp}',
+                'your_email@gmail.com',
+                [email],
+                fail_silently=False,
+            )
+
+            request.session['user_id'] = user.id
+            return JsonResponse({'status': 'success', 'message': 'Email has been sent to your! Follow the instructions.'})
+        return JsonResponse({'status': 'error', 'message': 'Email does not exist. Re-enter and try again.'})
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
 @csrf_exempt
 @login_required
 def change_password(request):
@@ -154,6 +177,16 @@ def change_password(request):
         
         user.set_password(new_password)
         user.save()
+        try:
+            send_mail(
+                'You changed your password',
+                f'You have successfully changed your password.',
+                'your_email@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f'Email send failed: {e}')
         update_session_auth_hash(request, user) # Keep user logged in after password change
         return JsonResponse({'status': 'success', 'message': 'Password changed successfully'})
     
@@ -177,6 +210,17 @@ def reset_password(request):
         user = User.objects.get(id=user_id)
         user.set_password(new_password)
         user.save()
+        try:
+            send_mail(
+                'You changed your password',
+                f'You have successfully changed your password.',
+                'your_email@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f'Email send failed: {e}')
+        
         return JsonResponse({'status': 'success', 'message': 'Password reset succesfully'})
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
