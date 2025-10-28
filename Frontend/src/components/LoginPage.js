@@ -21,7 +21,7 @@ const LoginPage = ( {onLoginSuccess} ) => {
   }
 
   const getCSRFToken = async () => {
-    await fetch("http://localhost:8000/accounts/csrf/", {
+    await fetch("/accounts/csrf/", {
       method: "GET",
       credentials: "include",
     });
@@ -37,7 +37,7 @@ const LoginPage = ( {onLoginSuccess} ) => {
       await getCSRFToken();
       const csrftoken = getCookie("csrftoken");
 
-      const response = await fetch("http://localhost:8000/accounts/login/", {
+      const response = await fetch("/accounts/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

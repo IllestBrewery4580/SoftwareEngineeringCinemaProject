@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
     const navigate = useNavigate();
     
     const getCSRFToken = async () => {
-    await fetch("http://localhost:8000/accounts/csrf/", {
+    await fetch("/accounts/csrf/", {
       method: "GET",
       credentials: "include",
     });
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
             await getCSRFToken();
             const csrftoken = getCookie("csrftoken");
 
-            const response = await fetch("http://localhost:8000/accounts/forgotpassword/", {
+            const response = await fetch("/accounts/forgotpassword/", {
                 method: "POST",
                 headers: {
                 "Content-Type": "application/json",

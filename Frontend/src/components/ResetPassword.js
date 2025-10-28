@@ -13,7 +13,7 @@ const ResetPassword = () => {
     const csrftoken = getCookie("csrftoken");
     const handleSubmit = async() => {
         try {
-            const response = await fetch("http://localhost:8000/accounts/newpassword/", {
+            const response = await fetch("/accounts/newpassword/", {
                 method: "POST",
                 headers: {
                 "Content-Type": "application/json",

@@ -71,7 +71,7 @@ import { getCookie } from '../utils/csrf';
     }
 
     useEffect(() => {
-        fetch('http://localhost:8000/accounts/profile/', {
+        fetch('/accounts/profile/', {
         method: 'GET',
         credentials: 'include',
         })
@@ -96,7 +96,7 @@ import { getCookie } from '../utils/csrf';
     }, []);
 
     const getCSRFToken = async () => {
-    await fetch("http://localhost:8000/accounts/csrf/", {
+    await fetch("/accounts/csrf/", {
       method: "GET",
       credentials: "include",
     });
@@ -110,7 +110,7 @@ import { getCookie } from '../utils/csrf';
                 await getCSRFToken();
                 const csrftoken = getCookie("csrftoken");
 
-                const response = await fetch("http://localhost:8000/accounts/updateprofile/", {
+                const response = await fetch("/accounts/updateprofile/", {
                     method: "POST",
                     headers: {
                     "Content-Type": "application/json",

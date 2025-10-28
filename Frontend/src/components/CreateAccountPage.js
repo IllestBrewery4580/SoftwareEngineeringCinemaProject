@@ -61,7 +61,7 @@ export default function CreateAccountPage () {
   }
   
   const getCSRFToken = async () => {
-    await fetch("http://localhost:8000/accounts/csrf/", {
+    await fetch("/accounts/csrf/", {
       method: "GET",
       credentials: "include",
     });
@@ -77,7 +77,7 @@ export default function CreateAccountPage () {
         await getCSRFToken()
         const csrftoken = getCookie("csrftoken");
 
-        const response = await fetch("http://localhost:8000/accounts/register/", {
+        const response = await fetch("/accounts/register/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -8,7 +8,7 @@ function LogoutButton({ setIsLoggedIn }) {
 
     const handleLogout = async () => {
         try {
-            const res = await fetch('http://localhost:8000/accounts/logout/', {
+            const res = await fetch('/accounts/logout/', {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
