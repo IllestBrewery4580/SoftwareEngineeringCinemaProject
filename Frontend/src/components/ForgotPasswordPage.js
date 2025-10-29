@@ -32,6 +32,8 @@ export default function ForgotPasswordPage() {
             const data = await response.json()
             if(data.status === 'success'){
                 navigate('/login/forgotpassword/verify');
+            } else {
+                alert(data.message);
             }
         } catch (err) {
             console.error("Error with password recovery:", err);

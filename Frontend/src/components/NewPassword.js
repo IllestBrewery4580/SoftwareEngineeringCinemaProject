@@ -28,7 +28,14 @@ const NewPassword = () => {
                 credentials:'include',
                 body: JSON.stringify({ oldPassword, newPassword, newPassword2 }),
             });
-            navigate('/');
+
+            const data = await response.json();
+
+            if(data.status === 'success') {
+                navigate('/');
+            } else {
+                alert(data.message);
+            }
         } catch (err) {
             console.error("Login error:", err);
             alert("An error occurred");

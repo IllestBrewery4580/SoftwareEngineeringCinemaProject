@@ -8,20 +8,19 @@ import { getCookie } from '../utils/csrf';
     const [lname, setLname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [state, setState] = useState('');
-    const [zipcode, setZipcode] = useState('');
+    const [homeAddress, setHomeAddress] = useState({
+        address_line: '',
+        city: '',
+        state: '',
+        zipcode: '',
+    });
     const [promotion, setPromotion] = useState(false);
     const [methods, setMethods] = useState([]);
 
     const handleFname = (fname) => setFname(fname);
     const handleLname = (lname) => setLname(lname);
     const handlePhone = (phone) => setPhone(phone);
-    const handleAddress = (address) => setAddress(address);
-    const handleCity = (city) => setCity(city);
-    const handleState = (state) => setState(state);
-    const handleZipcode = (zipcode) => setZipcode(zipcode);
+
     const handlePromotion = () => {
         setPromotion(!promotion);
     }
@@ -36,38 +35,55 @@ import { getCookie } from '../utils/csrf';
     }
 
     const addNewMethod = () => {
-        if (methods.length < 3) {
-            let id = methods.length + 1;
-            setMethods([...methods, {
-                id: id,
-                cardType:'',
-                cardNum:'', 
-                cardExp:'', 
-                cardCVV:''
-            }]);
-        }
-    }
+        setMethods(prev => [
+            ...prev,
+            {
+            id: prev.length + 1,
+            cardNum: '',
+            cardType: '',
+            cardExp: '',
+            address_line: '',
+            city: '',
+            state: '',
+            zipcode: '',
+            country: ''
+            }
+        ]);
+    };
 
-    const removeMethod = (id) => {
-        if (methods.length > 0) {
-            setMethods(methods.filter(method => method.id !== id));
+    const removeMethod = async(id) => {
+        try {
+            await getCSRFToken();
+            const csrftoken = getCookie("csrftoken");
+
+            const response = await fetch(`http://localhost:8000/accounts/payment/${id}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": csrftoken,
+                },
+                credentials: 'include',
+            });
+
+            if (!response.ok) throw new Error("Failed to delete payment method");
+
+            // Remove from local state
+            setMethods(prev => prev.filter(method => method.id !== id));
+
+        } catch (err) {
+            console.error(err);
+            alert("Could not delete payment method");
         }
-    }
+    
+    };
 
     const handleMethodChange = (id, field, value) => {
-        if (field === 'cardExp') {
-            value = value.replace(/\D/g, '').substring(0, 6);
+        setMethods(prev =>
+            prev.map(m => (m.id === id ? { ...m, [field]: value } : m))
+        );
+    };
 
-            if (value.length > 1) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 6);
-        }
-
-        }
-        setMethods(prevMethods => 
-            prevMethods.map(method =>
-                method.id === id ? {...method, [field]: value} : method
-            )
-        )
+    const handleAddressChange = (field, value) => {
+        setHomeAddress(prev => ({...prev, [field]: value}));
     }
 
     useEffect(() => {
@@ -86,9 +102,30 @@ import { getCookie } from '../utils/csrf';
             console.log("Data: ", data);
             setFname(data.first_name);
             setLname(data.last_name);
-            setEmail(data.email)
-            setPhone(data.phone)
-            setMethods(data.account_data)
+            setEmail(data.email);
+            setPhone(data.phone);
+            setPromotion(data.enroll_for_promotions);
+            
+            const mappedMethods = data.account_data.map((acc, idx) => ({
+                id: acc.id,
+                cardType: acc.card_type,
+                cardNum: acc.get_last4(),
+                cardExp: acc.expiration_date,
+                cardCVV: acc.get_cvv(),
+                address_line: acc.address_line || '',
+                city: acc.city || '',
+                state: acc.state || '',
+                zipcode: acc.zipcode || '',
+                country: acc.country || 'USA'
+            }));
+            setMethods(mappedMethods);
+            
+            setHomeAddress({
+                address_line: data.home_address?.address_line || '',
+                city: data.home_address?.city || '',
+                state: data.home_address?.state || '',
+                zipcode: data.home_address?.zipcode || '',
+            })
         })
         .catch((err) => {
             console.error("Error fetching profile:", err);
@@ -110,13 +147,26 @@ import { getCookie } from '../utils/csrf';
                 await getCSRFToken();
                 const csrftoken = getCookie("csrftoken");
 
+                const validMethods = methods.filter(method =>
+            Object.values(method).some(
+                value => value !== '' && value !== null && value !== undefined
+            )
+        );
+
                 const response = await fetch("http://localhost:8000/accounts/updateprofile/", {
                     method: "POST",
                     headers: {
                     "Content-Type": "application/json",
                     "X-CSRFToken": csrftoken,
                     },
-                    body: JSON.stringify({ fname, lname, phone }),
+                    body: JSON.stringify({
+                        fname: fname,
+                        lname: lname,
+                        phone: phone,
+                        enroll_for_promotions: document.getElementById('promotions').checked,
+                        payment: methods,
+                        homeAddress: homeAddress,
+                    }),
                     credentials:'include',
                 });
                 const data = await response.json()
@@ -185,11 +235,23 @@ import { getCookie } from '../utils/csrf';
                             <h1 className="pb-2 text-center">Payment Method {method.id}</h1>
                             <h1 className='px-2'>-</h1>
                             <div className='inline-block text-center px-2'>
-                                <input type="radio" id="credit" name="type" value="credit"/>
+                                <input 
+                                type="radio" 
+                                id="credit" 
+                                name="type" 
+                                value="credit" 
+                                checked={method.cardType === 'credit'} 
+                                onChange={(e) => handleMethodChange(method.id, 'cardType', e.target.value)}/>
                                 <label for="credit">Credit</label>
                             </div>
                             <div className='inline-block text-center gap-2'>
-                                <input type="radio" id="debit" name="type" value="debit"/>
+                                <input 
+                                type="radio" 
+                                id="debit" 
+                                name="type" 
+                                value="debit"
+                                checked={method.cardType === 'debit'} 
+                                onChange={(e) => handleMethodChange(method.id, 'cardType', e.target.value)}/>
                                 <label for="debit">Debit</label>
                             </div>
                         </div>
@@ -234,8 +296,8 @@ import { getCookie } from '../utils/csrf';
                             <input
                                 type="text"
                                 placeholder="Address Line"
-                                value={method.address}
-                                onChange={(e) => handleAddress(e.target.value)}
+                                value={method.address_line}
+                                onChange={(e) => handleMethodChange(method.id, 'address_line', e.target.value)}
                                 className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
@@ -244,21 +306,21 @@ import { getCookie } from '../utils/csrf';
                                 type="text"
                                 placeholder="City"
                                 value={method.city}
-                                onChange={(e) => handleCity(e.target.value)}
+                                onChange={(e) => handleMethodChange(method.id, 'city', e.target.value)}
                                 className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="State"
                                 value={method.state}
-                                onChange={(e) => handleState(e.target.value)}
+                                onChange={(e) => handleMethodChange(method.id, 'state', e.target.value)}
                                 className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <input
                                 type="text"
                                 placeholder="Zipcode"
                                 value={method.zipcode}
-                                onChange={(e) => handleZipcode(e.target.value)}
+                                onChange={(e) => handleMethodChange(method.id, 'zipcode', e.target.value)}
                                 className="text-center w-1/4 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
@@ -285,8 +347,8 @@ import { getCookie } from '../utils/csrf';
                     <input
                         type="text"
                         placeholder="Address Line"
-                        value={address}
-                        onChange={(e) => handleAddress(e.target.value)}
+                        value={homeAddress.address_line}
+                        onChange={(e) => handleAddressChange('address_line', e.target.value)}
                         className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
@@ -294,28 +356,28 @@ import { getCookie } from '../utils/csrf';
                     <input
                         type="text"
                         placeholder="City"
-                        value={city}
-                        onChange={(e) => handleCity(e.target.value)}
+                        value={homeAddress.city}
+                        onChange={(e) => handleAddressChange('city', e.target.value)}
                         className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                         type="text"
                         placeholder="State"
-                        value={state}
-                        onChange={(e) => handleState(e.target.value)}
+                        value={homeAddress.state}
+                        onChange={(e) => handleAddressChange('state', e.target.value)}
                         className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                         type="text"
                         placeholder="Zipcode"
-                        value={zipcode}
-                        onChange={(e) => handleZipcode(e.target.value)}
+                        value={homeAddress.zipcode}
+                        onChange={(e) => handleAddressChange('zipcode', e.target.value)}
                         className="text-center w-1/4 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 <div className='flex flex-row justify-end items-right pb-4 text-lg'>
                     <label className='flex justify-right text-right gap-2'>
-                        <input style={{transform:"scale(1.1"}} type='checkbox' checked={promotion} onChange={handlePromotion}/>
+                        <input id="promotions" style={{transform:"scale(1.1"}} type='checkbox' checked={promotion} onChange={handlePromotion}/>
                         Recieve Promotions
                     </label>
                 </div>
