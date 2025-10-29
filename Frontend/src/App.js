@@ -12,6 +12,9 @@ import ForgotPasswordPage from './components/ForgotPasswordPage';
 import ResetPassword from './components/ResetPassword';
 import Confirmation from './components/Confirmation'
 import ForgotVerification from './components/ForgotVerification';
+import AdminLogin from './components/AdminLogin'
+import Manage from "./components/Manage"
+import ManageMovieDetails from "./components/ManageMovieDetails"
 
 function App() {
   // State management
@@ -22,6 +25,7 @@ function App() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   // Fetch from backend on mount
@@ -92,6 +96,11 @@ function App() {
     setSelectedBooking({ movie, showtime });
     navigate("/booking")
   };
+
+  const showManageMovie = (movie) => {
+    setSelectedMovie(movie);
+    navigate("/manage/movie_details");
+  }
   
   return (
     <div className="min-h-screen bg-gray-100">
@@ -102,6 +111,9 @@ function App() {
               <nav className="flex items-center space-x-4">
                 <Link to="/" className="text-blue-200 hover:text-white transition-colors">Home</Link>
                 {isLoggedIn ? (<>
+                  {isAdmin ? (
+                    <Link to="/manage" className="text-blue-200 p-2 hover:text-white transition-colors">Manage</Link>
+                  ) : ("")}
                   <Link to="/profile" className="text-blue-200 p-2 hover:text-white transition-colors">Profile</Link>
                   <button onClick={handleLogout} className="text-blue-200 hover:text-white transition-colors">Logout</button>
                 </>) : (
@@ -133,7 +145,17 @@ function App() {
             selectedBooking={selectedBooking}
           />}></Route>
           <Route path="/login" element={<div className='justify-items-center'><LoginPage onLoginSuccess={() => setIsLoggedIn(true)}/></div>}></Route>
+          <Route path="/adminlogin" element={<div className='justify-items-center'><AdminLogin 
+            onAdminSuccess={() => {
+              setIsLoggedIn(true);
+              setIsAdmin(true)}}/></div>}></Route>
           <Route path="/profile" element={<Profile />}></Route>
+          <Route path="/manage" element={<Manage 
+            movies={movies}
+            showManageMovie={showManageMovie}
+            setSelectedMovie={setSelectedMovie}/>}></Route>
+          <Route path="/manage/movie_details" element={<ManageMovieDetails
+            selectedMovie={selectedMovie}/>}></Route>
           <Route path="/create" element={<CreateAccountPage />}></Route>
           <Route path="/profile/newpassword" element={<NewPassword />}></Route>
           <Route path="/login/forgotpassword" element={<ForgotPasswordPage />}></Route>
