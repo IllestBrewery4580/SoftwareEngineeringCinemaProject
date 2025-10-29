@@ -1,0 +1,368 @@
+from datetime import datetime
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
+from django.http import JsonResponse
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_http_methods
+from django.middleware.csrf import get_token
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from .models import EmailOTP, BillingAddress, Account, UserType
+from .utils import generate_otp
+import json
+
+def register(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('email')
+        email = data.get('email')
+        password = data.get('password')
+        fname = data.get('fname')
+        lname = data.get('lname')
+        phone = data.get('phone')
+        enroll_for_promotions = data.get('enroll_for_promotions')
+
+        User = get_user_model()
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'status': 'error', 'message': 'Email already exists. Please try again.'})
+
+        user = User.objects.create_user(
+            username=username, 
+            email=email, 
+            password=password, 
+            first_name=fname, 
+            last_name=lname, 
+            phone=phone, 
+            enroll_for_promotions=enroll_for_promotions)
+        user.is_active = False  # inactive until email verification
+        user.save()
+
+        otp = generate_otp()
+        EmailOTP.objects.create(user=user, otp=otp)
+
+        try:
+            send_mail(
+            'Your OTP Verification Code',
+            f'Your OTP code is {otp}',
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
+        except Exception as e:
+            print(f"Email send failed: {e}")
+
+        request.session['user_id'] = user.id
+        return JsonResponse({'status': 'success', 'message': 'An OTP has been sent to your email.'}, status=200)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def verify_otp(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        entered_otp = data.get('otp')
+        user_id = request.session.get('user_id')
+
+        if not user_id:
+            return JsonResponse({'status': 'error', 'message': 'Session expired. Please register again.'}, status=400)
+
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+        otp_record = EmailOTP.objects.get(user=user)
+
+        if otp_record.otp == entered_otp:
+            otp_record.is_verified = True
+            otp_record.save()
+            user.is_active = True
+            user.save()
+            return JsonResponse({'status': 'success', 'message': 'Email verified successfully! You can now log in.'}, status=200)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid OTP. Please try again.'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def login_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')  # or email
+        password = data.get('password')
+
+        user = get_user_model()
+        try:
+            user_info = user.objects.get(email=email)
+            username = user_info.username
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User does not exist!'})
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                request.session['user_id'] = user.id
+                return JsonResponse({'status': 'success', 'message': 'Login successful'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Please verify your email first.'}, status=403)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid credentials.'}, status=401)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+@login_required
+def get_profile(request):
+    user = request.user
+    
+    accounts = []
+    for acc in Account.objects.filter(user=user):
+        try:
+            addr = BillingAddress.objects.get(card=acc)
+        except BillingAddress.DoesNotExist:
+            addr = None
+        accounts.append({
+            "card_no": acc.card_no,
+            "card_type": acc.card_type,
+            "expiration_date": acc.expiration_date.strftime("%m/%Y"),
+            "address_line": addr.address_line if addr else "",
+            "city": addr.city if addr else "",
+            "state": addr.state if addr else "",
+            "zipcode": addr.zipcode if addr else "",
+            "country": addr.country if addr else ""
+        })
+
+    profile_data = {
+        'email': user.email,
+        'password': user.password,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'phone': user.phone,
+        'enroll_for_promotions': user.enroll_for_promotions,
+        'account_data': accounts
+    }
+
+    return JsonResponse(profile_data)
+
+def update_profile(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = request.user
+        fname = data.get('fname')
+        lname = data.get('lname')
+        phone = data.get('phone')
+        enroll_for_promotions = data.get('enroll_for_promotions')
+        
+        payment_data = data.get('payment', [])
+        for pay in payment_data:
+            acc, created = Account.objects.update_or_create(
+                card_no=pay['cardNum'],
+                defaults={
+                    'user':user,
+                    'card_type':pay['cardType'],
+                    'expiration_date':datetime.strptime(pay['cardExp'], "%m/%Y").date()
+                }
+            )
+
+            BillingAddress.objects.update_or_create(
+                card=acc,
+                defaults={
+                    'address_line': pay.get('address_line', ''),
+                    'city': pay.get('city', ''),
+                    'state': pay.get('state', ''),
+                    'zipcode': pay.get('zipcode', ''),
+                    'country': pay.get('country', 'USA')
+                }
+            )
+
+        user.first_name = fname
+        user.last_name = lname
+        user.phone = phone
+        user.enroll_for_promotions = enroll_for_promotions
+        user.accounts_data = payment_data
+        user.save()
+
+        try:
+            send_mail(
+                'You changed your password',
+                f'You have successfully changed your profile.',
+                'your_email@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f'Email send failed: {e}')
+
+        return JsonResponse({'status': 'success', 'message': 'Successfully updated profile!'}, status=200)
+
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        oldpassword = data.get('oldPassword')
+        newpassword = data.get('newPassword')
+        newpassword2 = data.get('newPassword2')
+        user = request.user
+        
+        if not user.check_password(oldpassword):
+            return JsonResponse({'status': 'error', 'message': 'Your current password is not correct! Re-enter and try again.'})
+        
+        if newpassword != newpassword2:
+            return JsonResponse({'status': 'error', 'message': 'Password do not match! Re-enter and try again.'})
+        
+        user.set_password(newpassword)
+        user.save()
+        update_session_auth_hash(request, user)
+        try:
+            send_mail(
+                'You changed your password',
+                f'You have successfully changed your password.',
+                'your_email@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f'Email send failed: {e}')
+
+        return JsonResponse({'status': 'success', 'message': 'You have successfully changed your password!'}, status=200)
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def forgot_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        User = get_user_model()
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            otp = generate_otp()
+            EmailOTP.objects.create(user=user, otp=otp)
+
+            send_mail(
+                'Reset your password',
+                f'Here\'s your otp code {otp}',
+                'your_email@gmail.com',
+                [email],
+                fail_silently=False,
+            )
+
+            request.session['user_id'] = user.id
+            return JsonResponse({'status': 'success', 'message': 'Email has been sent to your! Follow the instructions.'})
+        return JsonResponse({'status': 'error', 'message': 'Email does not exist. Re-enter and try again.'})
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def verify_otp_pass(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        entered_otp = data.get('otp')
+        user_id = request.session.get('user_id')
+        
+        if not user_id:
+            return JsonResponse({'status': 'error', 'message': 'Session expired. Please register again.'}, status=400)
+        
+        user = User.objects.get(id=user_id)
+        otp_record = EmailOTP.objects.get(user=user)
+
+        if otp_record.otp == entered_otp:
+            otp_record.is_verified = True
+            otp_record.save()
+            return JsonResponse({'status': 'success', 'message': 'Email verified successfully! You can now log in.'}, status=200)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid OTP. Please try again.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+
+def new_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        newpassword = data.get('newPassword')
+        newpassword2 = data.get('newPassword2')
+        user_id = request.session.get('user_id')
+        
+        user = User.objects.get(id=user_id)
+
+        if newpassword != newpassword2:
+            return JsonResponse({'status': 'error', 'message': 'Password do not match! Re-enter and try again.'})
+
+        user.set_password(newpassword)
+        user.save()
+        update_session_auth_hash(request, user)
+        try:
+            send_mail(
+                'You changed your password',
+                f'You have successfully changed your password.',
+                'your_email@gmail.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f'Email send failed: {e}')
+
+        return JsonResponse({'status': 'success', 'message': 'You have successfully changed your password!'}, status=200)
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def logout_view(request):
+    logout(request)
+    response = JsonResponse({'message': 'Logged out seccessfully'})
+    return response
+
+@ensure_csrf_cookie
+def getCSRFToken(request):
+    csrfToken = get_token(request)
+    return JsonResponse({'csrfToken': csrfToken})
+
+@csrf_exempt
+@login_required
+def add_address(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        address = BillingAddress.objects.create(
+            user=request.user,
+            street=data.get('street'),
+            city=data.get('city'),
+            state=data.get('state'),
+            postal_code=data.get('postal_code'),
+        )
+        return JsonResponse({'message': 'Address added successfully', 'address_id': address.id})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def add_payment(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        card_no = data.get('card_no')
+        card_type = data.get('card_type')
+        expiry = data.get('expiration_date')  # format MM/YYYY
+        cvv = data.get('cvv')  # optional, not stored in model
+
+        try:
+            account = Account.objects.create(
+                user=request.user,
+                card_no=card_no,
+                card_type=card_type,
+                expiration_date=datetime.strptime(expiry, "%m/%Y").date()
+            )
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+        BillingAddress.objects.create(
+            card=account,
+            address_line=data.get('address_line', ''),
+            city=data.get('city', ''),
+            state=data.get('state', ''),
+            zipcode=data.get('zipcode', ''),
+            country=data.get('country', 'USA')
+        )
+        return JsonResponse({'message': 'Payment info added successfully'})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_payment(request, id):
+    account = get_object_or_404(Account, card_no=id, user=request.user)
+    BillingAddress.objects.filter(card=account).delete()
+    account.delete()
+
+    return JsonResponse({'status': 'success', 'message': 'Payment method deleted successfully!'})
