@@ -12,7 +12,7 @@ urlpatterns = [
     # Password routes
     path('forgotpassword/', views.forgot_password, name='forgot_password'),
     path('changepassword/', views.change_password, name='change_password'),
-    path('newpassword/', views.reset_password, name='reset_password'),
+    path('newpassword/', views.new_password, name='new_password'),
     path('verify-otp-pass/', views.verify_otp_pass, name='verify_otp_pass'),
 
     # Profile routes
