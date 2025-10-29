@@ -27,7 +27,7 @@ function App() {
   // Fetch from backend on mount
   useEffect(() => {
     setLoading(true);
-    fetch("/api/movies/")
+    fetch("http://localhost:8000/api/movies/")
       .then((res) => res.json())
       .then((data) => {
         setMovies(data);
@@ -43,7 +43,7 @@ function App() {
   // Handles logout function
   const handleLogout = async () => {
     try {
-      const res = await fetch('/accounts/logout/', {
+      const res = await fetch('http://localhost:8000/accounts/logout/', {
           method: 'GET',
           credentials: 'include',
           headers: {
