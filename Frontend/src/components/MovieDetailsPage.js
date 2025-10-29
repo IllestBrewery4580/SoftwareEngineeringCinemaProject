@@ -60,7 +60,12 @@ const MovieDetailsPage = ({ selectedMovie, showBookingPage }) => {
             <span className="text-gray-600">{casts}</span>
           </div>
           
-          <p className="text-gray-700 mb-6 leading-relaxed">{selectedMovie.description}</p>
+          <br></br>
+          <div>
+            <span className="text-gray-600 font-bold">Synopsis:{" "}</span>
+            <span className="text-gray-700 mb-6 leading-relaxed">{selectedMovie.description}</span>
+          </div>
+          <br></br>
           
           {/* Trailer Section */}
           {selectedMovie.trailer_link && (
@@ -103,5 +108,6 @@ const MovieDetailsPage = ({ selectedMovie, showBookingPage }) => {
     </div>
   );
 };
+
 
 export default MovieDetailsPage;
