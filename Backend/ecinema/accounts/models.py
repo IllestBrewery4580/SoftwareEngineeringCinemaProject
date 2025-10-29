@@ -1,5 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from cryptography.fernet import Fernet
+import base64
+import os
+
+fernet = Fernet(settings.ENCRYPTION_KEY)
 
 class UserType(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -29,12 +35,39 @@ class EmailOTP(models.Model):
 
 class Account(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    card_no = models.CharField(max_length=20, primary_key=True)
+    card_no_encrypted = models.BinaryField()
     card_type = models.CharField(max_length=20)
     expiration_date = models.DateField()
+    cvv_encrypted = models.BinaryField()
+
+    def set_card_no(self, card_no):
+        self.card_no_encrypted = fernet.encrypt(card_no.encode())
+
+    def get_card_no(self):
+        return fernet.decrypt(self.card_no_encrypted).decode()
+    
+    def get_last4(self):
+        return self.get_card_no()[-4:]
+
+    def set_cvv(self, cvv):
+        self.cvv_encrypted = fernet.encrypt(cvv.encode())
+
+    def get_cvv(self):
+        return fernet.decrypt(self.cvv_encrypted).decode()
 
     def __str__(self):
-        return f"{self.user.username} - {self.card_no}"
+        return f"{self.user.username} - {self.card_type}"
+    
+class HomeAddress(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    address_line = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    zipcode = models.CharField(max_length=10)
+    country = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.address_line}"
 
 
 class BillingAddress(models.Model):
@@ -46,4 +79,4 @@ class BillingAddress(models.Model):
     country = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.card.user.username} - {self.address_line}"
+        return f"Billing for {self.card.user.username}"
