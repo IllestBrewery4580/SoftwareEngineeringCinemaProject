@@ -15,6 +15,7 @@ import ForgotVerification from './components/ForgotVerification';
 import AdminLogin from './components/AdminLogin'
 import Manage from "./components/Manage"
 import ManageMovieDetails from "./components/ManageMovieDetails"
+import SeatingPage from './components/SeatingPage';
 
 function App() {
   // State management
@@ -162,6 +163,10 @@ function App() {
           <Route path="/login/forgotpassword/verify" element={<ForgotVerification />}></Route>
           <Route path="/login/forgotpassword/resetpassword" element={<ResetPassword />}></Route>
           <Route path="/create/verification" element={<Confirmation />}></Route>
+          <Route path="/booking/seatselection" element={<SeatingPage 
+            selectedBooking={selectedBooking}
+            />}></Route>
+
         </Routes>
       </main>
 

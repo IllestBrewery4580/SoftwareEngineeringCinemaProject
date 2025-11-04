@@ -7,6 +7,10 @@ const BookingPage = ({ selectedBooking }) => {
       navigate('/');
   }
 
+  const handleSeating = () => {
+    navigate('/booking/seatselection');
+  }
+
   var rated = null;
   if(selectedBooking.movie.rating == 1) {
     rated = "G"
@@ -83,7 +87,7 @@ const BookingPage = ({ selectedBooking }) => {
       <div className="mt-6 flex justify-center">
         <button 
           className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg"
-          onClick={() => alert('Booking functionality will be implemented in future sprints!')}
+          onClick={handleSeating}
         >
           Continue to Seat Selection
         </button>
