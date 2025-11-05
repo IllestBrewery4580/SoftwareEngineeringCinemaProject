@@ -7,7 +7,7 @@ const SeatingPage = ({selectedBooking}) => {
     const navigate = useNavigate();
     const handleGoBooking = () => {
       navigate('/booking');
-  }
+  } 
 
     var rated = null;
   if(selectedBooking.movie.rating == 1) {
@@ -56,6 +56,18 @@ const SeatingPage = ({selectedBooking}) => {
         handleNumSeats(a4selected);
     }
 
+    const [a5selected, a5setSelected] = useState(false);
+    const a5handleSelect = () => {
+        a5setSelected(!a5selected);
+        handleNumSeats(a5selected);
+    }
+
+    const [a6selected, a6setSelected] = useState(false);
+    const a6handleSelect = () => {
+        a6setSelected(!a6selected);
+        handleNumSeats(a6selected);
+    }
+
     const [b1selected, b1setSelected] = useState(false);
     const b1handleSelect = () => {
         b1setSelected(!b1selected);
@@ -78,6 +90,18 @@ const SeatingPage = ({selectedBooking}) => {
     const b4handleSelect = () => {
         b4setSelected(!b4selected);
         handleNumSeats(b4selected);
+    }
+
+    const [b5selected, b5setSelected] = useState(false);
+    const b5handleSelect = () => {
+        b5setSelected(!b5selected);
+        handleNumSeats(b5selected);
+    }
+
+    const [b6selected, b6setSelected] = useState(false);
+    const b6handleSelect = () => {
+        b6setSelected(!b6selected);
+        handleNumSeats(b6selected);
     }
 
     const [c1selected, c1setSelected] = useState(false);
@@ -104,6 +128,18 @@ const SeatingPage = ({selectedBooking}) => {
         handleNumSeats(c4selected);
     }
 
+    const [c5selected, c5setSelected] = useState(false);
+    const c5handleSelect = () => {
+        c5setSelected(!c5selected);
+        handleNumSeats(c5selected);
+    }
+
+    const [c6selected, c6setSelected] = useState(false);
+    const c6handleSelect = () => {
+        c6setSelected(!c6selected);
+        handleNumSeats(c6selected);
+    }
+
     const [d1selected, d1setSelected] = useState(false);
     const d1handleSelect = () => {
         d1setSelected(!d1selected);
@@ -127,6 +163,55 @@ const SeatingPage = ({selectedBooking}) => {
         d4setSelected(!d4selected);
         handleNumSeats(d4selected);
     }
+
+    const [d5selected, d5setSelected] = useState(false);
+    const d5handleSelect = () => {
+        d5setSelected(!d5selected);
+        handleNumSeats(d5selected);
+    }
+
+    const [d6selected, d6setSelected] = useState(false);
+    const d6handleSelect = () => {
+        d6setSelected(!d6selected);
+        handleNumSeats(d6selected);
+    }
+
+    const [e1selected, e1setSelected] = useState(false);
+    const e1handleSelect = () => {
+        e1setSelected(!e1selected);
+        handleNumSeats(e1selected);
+    }
+
+    const [e2selected, e2setSelected] = useState(false);
+    const e2handleSelect = () => {
+        e2setSelected(!e2selected);
+        handleNumSeats(e2selected);
+    }
+
+    const [e3selected, e3setSelected] = useState(false);
+    const e3handleSelect = () => {
+        e3setSelected(!e3selected);
+        handleNumSeats(e3selected);
+    }
+
+    const [e4selected, e4setSelected] = useState(false);
+    const e4handleSelect = () => {
+        e4setSelected(!e4selected);
+        handleNumSeats(e4selected);
+    }
+
+    const [e5selected, e5setSelected] = useState(false);
+    const e5handleSelect = () => {
+        e5setSelected(!e5selected);
+        handleNumSeats(e5selected);
+    }
+
+    const [e6selected, e6setSelected] = useState(false);
+    const e6handleSelect = () => {
+        e6setSelected(!e6selected);
+        handleNumSeats(e6selected);
+    }
+
 
 
     if (!selectedBooking) return null;
@@ -166,35 +251,54 @@ const SeatingPage = ({selectedBooking}) => {
          <div className="bg-gray-50 rounded-lg p-6 mb-6">
             <div className='flex-row justify-self-center'>
                 <div className='flex-col justify-self-center'>
-                    <button className='bg-black text-white m-3 pr-32 pl-32 pt-1 pb-1 cursor-default'>Screen</button>
+                    <button className='bg-black text-white m-3 pr-48 pl-48 pt-1 pb-1 mb-5 cursor-default'>Screen</button>
                 </div>
                 
                 <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a1handleSelect}>A1</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a2handleSelect}>A2</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a3handleSelect}>A3</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a4handleSelect}>A4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a1handleSelect}>A1</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a2handleSelect}>A2</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a3handleSelect}>A3</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a4handleSelect}>A4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a5handleSelect}>A5</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a6handleSelect}>A6</button>
+
+
                 </div>
                 <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b1handleSelect}>B1</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b2handleSelect}>B2</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b3handleSelect}>B3</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b4handleSelect}>B4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b1handleSelect}>B1</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b2handleSelect}>B2</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b3handleSelect}>B3</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b4handleSelect}>B4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b5handleSelect}>B5</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b6handleSelect}>B6</button>
                 </div>
                 <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c1handleSelect}>C1</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c2handleSelect}>C2</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c3handleSelect}>C3</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c4handleSelect}>C4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c1handleSelect}>C1</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c2handleSelect}>C2</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c3handleSelect}>C3</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c4handleSelect}>C4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c5handleSelect}>C5</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c6handleSelect}>C6</button>
                 </div>
                 <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d1handleSelect}>D1</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d2handleSelect}>D2</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d3handleSelect}>D3</button>
-                    <button className={`m-1 p-3 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d4handleSelect}>D4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d1handleSelect}>D1</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d2handleSelect}>D2</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d3handleSelect}>D3</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d4handleSelect}>D4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d5handleSelect}>D5</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d6handleSelect}>D6</button>
+                </div>
+                <div className='flex-col justify-self-center'>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e1handleSelect}>E1</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e2handleSelect}>E2</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e3handleSelect}>E3</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e4handleSelect}>E4</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e5handleSelect}>E5</button>
+                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e6handleSelect}>E6</button>
                 </div>
                 <div className='flex-col'>
                     <h1  className="text-xl font-semibold m-2 justify-self-center">{numSeats} seats selected</h1>
+
                 </div>
             </div>
         </div>
