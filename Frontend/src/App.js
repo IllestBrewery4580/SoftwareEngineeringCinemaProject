@@ -16,6 +16,7 @@ import AdminLogin from './components/AdminLogin'
 import Manage from "./components/Manage"
 import ManageMovieDetails from "./components/ManageMovieDetails"
 import SeatingPage from './components/SeatingPage';
+import Checkout from './components/Checkout';
 
 function App() {
   // State management
@@ -28,6 +29,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const[numSeats, setNumSeats] = useState(0);
+  
 
   // Fetch from backend on mount
   useEffect(() => {
@@ -143,7 +146,7 @@ function App() {
             showBookingPage={showBookingPage}
           />}></Route>
           <Route path="/booking" element={<BookingPage 
-            selectedBooking={selectedBooking}
+            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
           />}></Route>
           <Route path="/login" element={<div className='justify-items-center'><LoginPage onLoginSuccess={() => setIsLoggedIn(true)}/></div>}></Route>
           <Route path="/adminlogin" element={<div className='justify-items-center'><AdminLogin 
@@ -164,7 +167,10 @@ function App() {
           <Route path="/login/forgotpassword/resetpassword" element={<ResetPassword />}></Route>
           <Route path="/create/verification" element={<Confirmation />}></Route>
           <Route path="/booking/seatselection" element={<SeatingPage 
-            selectedBooking={selectedBooking}
+            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
+            />}></Route>
+            <Route path="/booking/checkout" element={<Checkout 
+            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
             />}></Route>
 
         </Routes>

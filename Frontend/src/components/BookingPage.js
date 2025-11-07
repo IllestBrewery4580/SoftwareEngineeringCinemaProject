@@ -1,14 +1,15 @@
 'use client'
 import { useNavigate } from 'react-router-dom';
 
-const BookingPage = ({ selectedBooking }) => {
+const BookingPage = ({ selectedBooking, getNumSeats, numSeats }) => {
   const navigate = useNavigate();
   const handleGoHome = () => {
-      navigate('/');
+      navigate('/');  
   }
 
   const handleSeating = () => {
     navigate('/booking/seatselection');
+    getNumSeats(() => numSeats = 0);
   }
 
   var rated = null;

@@ -3,11 +3,24 @@ import { Star, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
-const SeatingPage = ({selectedBooking}) => {
+const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
     const navigate = useNavigate();
     const handleGoBooking = () => {
       navigate('/booking');
-  } 
+    }
+    
+    const handleGoCheckout =() => {
+        navigate('/booking/checkout');
+    }
+  
+
+    const handleNumSeats = (selected) => {
+    if(!selected) {
+        getNumSeats(numSeats + 1);
+    } else {
+        getNumSeats(numSeats - 1);
+    }
+  }
 
     var rated = null;
   if(selectedBooking.movie.rating == 1) {
@@ -20,15 +33,6 @@ const SeatingPage = ({selectedBooking}) => {
     rated = "R"
   }
 
-  {/*Handler for total number of seats*/}
-  const[numSeats, setNumSeats] = useState(0);
-  const handleNumSeats = (selected) => {
-    if(!selected) {
-        setNumSeats(numSeats + 1);
-    } else {
-        setNumSeats(numSeats - 1);
-    }
-  }
 
   {/*Handlers for each seat*/}
   const [a1selected, a1setSelected] = useState(false);
@@ -304,7 +308,7 @@ const SeatingPage = ({selectedBooking}) => {
         </div>
 
         <div className='justify-self-center'>
-            <button className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg" onClick={() => alert("checkout page not completed :(")}>
+            <button className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg" onClick={handleGoCheckout}>
             Continue to Checkout
             </button>
         </div>
