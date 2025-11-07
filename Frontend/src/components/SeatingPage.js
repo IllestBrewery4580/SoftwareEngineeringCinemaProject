@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
+
+
+    {/*Navigation*/}
     const navigate = useNavigate();
     const handleGoBooking = () => {
       navigate('/booking');
@@ -13,7 +16,7 @@ const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
         navigate('/booking/checkout');
     }
   
-
+    {/*Handler for total number of seats*/}
     const handleNumSeats = (selected) => {
     if(!selected) {
         getNumSeats(numSeats + 1);
@@ -21,7 +24,7 @@ const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
         getNumSeats(numSeats - 1);
     }
   }
-
+{/*Rating*/}
     var rated = null;
   if(selectedBooking.movie.rating == 1) {
     rated = "G"
@@ -221,21 +224,21 @@ const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
     if (!selectedBooking) return null;
     return (
         <div>
-        {/* Selected Movie & Showtime */}
-      <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
-        <div className='flex items-center mb-6 justify-between'>
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Seat Selection</h1>
-                </div>
-                <div>
+    {/* Selected Movie & Showtime */}
+    <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
+    <div className='flex items-center mb-6 justify-between'>
             <div>
-            <button className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" onClick={handleGoBooking}>
-             ← Back to Booking
-            </button>
+                <h1 className="text-3xl font-bold text-gray-800">Seat Selection</h1>
             </div>
+            <div>
+        <div>
+        <button className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" onClick={handleGoBooking}>
+            ← Back to Booking
+        </button>
         </div>
-        </div>
-        <div className="flex items-start space-x-4">
+    </div>
+    </div>
+    <div className="flex items-start space-x-4">
           <img 
             src={selectedBooking.movie.poster}
             alt={selectedBooking.movie.title}
