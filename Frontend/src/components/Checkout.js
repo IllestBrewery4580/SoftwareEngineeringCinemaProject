@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
 
+    const paragraphRef = useRef(null);
     const navigate = useNavigate();
     const handleSeating = () => {
     navigate('/booking/seatselection');
@@ -21,7 +22,10 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
     const[totalPrice, setTotalPrice] = useState(0);
     const handleTotalPrice = () => {
         setTotalPrice(() => (adultTicks * 10) + (childTicks * 7) + (seniorTicks * 7));
-        console.log("total price calculated " + {totalPrice});
+        window.scrollTo({
+            top: paragraphRef.current.offsetTop,
+            behavior: "smooth"
+          });
     }
 
       {/*Setting number of each ticket type*/}
@@ -164,7 +168,7 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
         </div>
 
             <div className="bg-gray-50 rounded-lg p-3 mb-6 flex-row">
-            <div className="justify-items-center flex-col p-3">
+            <div className="justify-items-center flex-col p-3" ref={paragraphRef}>
 
                 <div className="flex" >
                 <div className="flex-row m-10 bg-gray-100 rounded-lg p-6 ">
