@@ -1,322 +1,208 @@
-'use client'
-import { Star, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+'use client';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { fetchSeats, createBooking } from "../api";
 
-const SeatingPage = ({selectedBooking, getNumSeats, numSeats}) => {
-
-
-    {/*Navigation*/}
+export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) {
     const navigate = useNavigate();
-    const handleGoBooking = () => {
-      navigate('/booking');
-    }
-    
-    const handleGoCheckout =() => {
-        navigate('/booking/checkout');
-    }
-  
-    {/*Handler for total number of seats*/}
-    const handleNumSeats = (selected) => {
-    if(!selected) {
-        getNumSeats(numSeats + 1);
-    } else {
-        getNumSeats(numSeats - 1);
-    }
-  }
-{/*Rating*/}
-    var rated = null;
-  if(selectedBooking.movie.rating == 1) {
-    rated = "G"
-  } else if (selectedBooking.movie.rating == 2) {
-    rated = "PG"
-  } else if (selectedBooking.movie.rating == 3) {
-    rated = "PG-13"
-  } else {
-    rated = "R"
-  }
+    const location = useLocation();
+    const showId = location.state?.showId ?? 1;     // fallback to 1 if not passed
+    const bookingInfo = location.state?.selectedBooking || selectedBooking;
 
+    const [seats, setSeats] = useState([]);
+    const [selected, setSelected] = useState([]);
+    const [ticketTypes, setTicketTypes] = useState({});
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
 
-  {/*Handlers for each seat*/}
-  const [a1selected, a1setSelected] = useState(false);
-  const a1handleSelect = () => {
-    a1setSelected(!a1selected);
-    handleNumSeats(a1selected);
-    }
+    const PRICE = { Adult: 12.5, Senior: 10.0, Child: 8.0 };
 
-    const [a2selected, a2setSelected] = useState(false);
-    const a2handleSelect = () => {
+    useEffect(() => {
+        (async () => {
+            setLoading(true);
+            try {
+                const data = await fetchSeats(showId);
+                setSeats(data);
+            } catch (e) {
+                alert("Failed to load seats");
+            } finally {
+                setLoading(false);
+            }
+        })();
+    }, [showId]);
 
-        a2setSelected(!a2selected);
-        handleNumSeats(a2selected);
-    }
+    const toggleSeat = (seat) => {
+        if (seat.is_reserved) return;
+        setSelected((prev) =>
+            prev.some((s) => s.id === seat.id)
+                ? prev.filter((s) => s.id !== seat.id)
+                : [...prev, seat]
+        );
 
-    const [a3selected, a3setSelected] = useState(false);
-    const a3handleSelect = () => {
-        a3setSelected(!a3selected);
-        handleNumSeats(a3selected);
-    }
+        setTicketTypes((prev) => {
+            const next = { ...prev };
+            if (next[seat.id]) {
+                delete next[seat.id];       // deselect -> remove type
+            } else {
+                next[seat.id] = "Adult";    // select -> default to Adult
+            }
+            return next;
+        });
+    };
 
-    const [a4selected, a4setSelected] = useState(false);
-    const a4handleSelect = () => {
-        a4setSelected(!a4selected);
-        handleNumSeats(a4selected);
-    }
+    const total = selected.reduce((sum, s) => sum + (PRICE[ticketTypes[s.id]] ?? PRICE.Adult), 0);
 
-    const [a5selected, a5setSelected] = useState(false);
-    const a5handleSelect = () => {
-        a5setSelected(!a5selected);
-        handleNumSeats(a5selected);
-    }
+    const book = async () => {
+        if (!selected.length) return alert("Pick at least one seat.");
+        // ensure each selected seat has a type
+        for (const s of selected) {
+            if (!ticketTypes[s.id]) return alert(`Choose a ticket type for seat ${s.row}${s.number}`);
+        }
+        // snapshot current selections before any async work
+        const snapshotSelected = [...selected];
+        const snapshotTypes = { ...ticketTypes };
+        const totalNow = snapshotSelected.reduce(
+            (sum, s) => sum + (PRICE[snapshotTypes[s.id]] ?? PRICE.Adult),
+            0
+        );
 
-    const [a6selected, a6setSelected] = useState(false);
-    const a6handleSelect = () => {
-        a6setSelected(!a6selected);
-        handleNumSeats(a6selected);
-    }
+        setLoading(true);
+        try {
+            await createBooking({
+                show: showId,
+                full_name: fullName,
+                email,
+                seats: snapshotSelected.map((s) => ({
+                    seat_id: s.id,
+                    price: PRICE[snapshotTypes[s.id]],
+                })),
+            });
+            // refresh and proceed (or send to checkout)
+            setSelected([]);
+            setTicketTypes({});
+            await setSeats(await fetchSeats(showId));
+            // example: go to checkout with summary
+            navigate("/booking/checkout", {
+                state: {
+                    showId,
+                    total: totalNow,
+                    seats: snapshotSelected.map((s) => ({
+                        label: `${s.row}${s.number}`,
+                        type: snapshotTypes[s.id],
+                        price: PRICE[snapshotTypes[s.id]],
+                    })),
+                    bookingInfo,
+                },
+            });
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const [b1selected, b1setSelected] = useState(false);
-    const b1handleSelect = () => {
-        b1setSelected(!b1selected);
-        handleNumSeats(b1selected);
-    }
-
-    const [b2selected, b2setSelected] = useState(false);
-    const b2handleSelect = () => {
-        b2setSelected(!b2selected);
-        handleNumSeats(b2selected);
-    }
-
-    const [b3selected, b3setSelected] = useState(false);
-    const b3handleSelect = () => {
-        b3setSelected(!b3selected);
-        handleNumSeats(b3selected);
-    }
-
-    const [b4selected, b4setSelected] = useState(false);
-    const b4handleSelect = () => {
-        b4setSelected(!b4selected);
-        handleNumSeats(b4selected);
-    }
-
-    const [b5selected, b5setSelected] = useState(false);
-    const b5handleSelect = () => {
-        b5setSelected(!b5selected);
-        handleNumSeats(b5selected);
-    }
-
-    const [b6selected, b6setSelected] = useState(false);
-    const b6handleSelect = () => {
-        b6setSelected(!b6selected);
-        handleNumSeats(b6selected);
-    }
-
-    const [c1selected, c1setSelected] = useState(false);
-    const c1handleSelect = () => {
-        c1setSelected(!c1selected);
-        handleNumSeats(c1selected);
-    }
-
-    const [c2selected, c2setSelected] = useState(false);
-    const c2handleSelect = () => {
-        c2setSelected(!c2selected);
-        handleNumSeats(c2selected);
-    }
-
-    const [c3selected, c3setSelected] = useState(false);
-    const c3handleSelect = () => {
-        c3setSelected(!c3selected);
-        handleNumSeats(c3selected);
-    }
-
-    const [c4selected, c4setSelected] = useState(false);
-    const c4handleSelect = () => {
-        c4setSelected(!c4selected);
-        handleNumSeats(c4selected);
-    }
-
-    const [c5selected, c5setSelected] = useState(false);
-    const c5handleSelect = () => {
-        c5setSelected(!c5selected);
-        handleNumSeats(c5selected);
-    }
-
-    const [c6selected, c6setSelected] = useState(false);
-    const c6handleSelect = () => {
-        c6setSelected(!c6selected);
-        handleNumSeats(c6selected);
-    }
-
-    const [d1selected, d1setSelected] = useState(false);
-    const d1handleSelect = () => {
-        d1setSelected(!d1selected);
-        handleNumSeats(d1selected);
-    }
-
-    const [d2selected, d2setSelected] = useState(false);
-    const d2handleSelect = () => {
-        d2setSelected(!d2selected);
-        handleNumSeats(d2selected);
-    }
-
-    const [d3selected, d3setSelected] = useState(false);
-    const d3handleSelect = () => {
-        d3setSelected(!d3selected);
-        handleNumSeats(d3selected);
-    }
-
-    const [d4selected, d4setSelected] = useState(false);
-    const d4handleSelect = () => {
-        d4setSelected(!d4selected);
-        handleNumSeats(d4selected);
-    }
-
-    const [d5selected, d5setSelected] = useState(false);
-    const d5handleSelect = () => {
-        d5setSelected(!d5selected);
-        handleNumSeats(d5selected);
-    }
-
-    const [d6selected, d6setSelected] = useState(false);
-    const d6handleSelect = () => {
-        d6setSelected(!d6selected);
-        handleNumSeats(d6selected);
-    }
-
-    const [e1selected, e1setSelected] = useState(false);
-    const e1handleSelect = () => {
-        e1setSelected(!e1selected);
-        handleNumSeats(e1selected);
-    }
-
-    const [e2selected, e2setSelected] = useState(false);
-    const e2handleSelect = () => {
-        e2setSelected(!e2selected);
-        handleNumSeats(e2selected);
-    }
-
-    const [e3selected, e3setSelected] = useState(false);
-    const e3handleSelect = () => {
-        e3setSelected(!e3selected);
-        handleNumSeats(e3selected);
-    }
-
-    const [e4selected, e4setSelected] = useState(false);
-    const e4handleSelect = () => {
-        e4setSelected(!e4selected);
-        handleNumSeats(e4selected);
-    }
-
-    const [e5selected, e5setSelected] = useState(false);
-    const e5handleSelect = () => {
-        e5setSelected(!e5selected);
-        handleNumSeats(e5selected);
-    }
-
-    const [e6selected, e6setSelected] = useState(false);
-    const e6handleSelect = () => {
-        e6setSelected(!e6selected);
-        handleNumSeats(e6selected);
-    }
-
-
-
-    if (!selectedBooking) return null;
     return (
-        <div>
-    {/* Selected Movie & Showtime */}
-    <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
-    <div className='flex items-center mb-6 justify-between'>
-            <div>
-                <h1 className="text-3xl font-bold text-gray-800">Seat Selection</h1>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold text-gray-800">Select Your Seats</h1>
+                <button
+                    onClick={() => navigate(-1)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                    ← Back
+                </button>
             </div>
-            <div>
-        <div>
-        <button className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors" onClick={handleGoBooking}>
-            ← Back to Booking
-        </button>
-        </div>
-    </div>
-    </div>
-    <div className="flex items-start space-x-4">
-          <img 
-            src={selectedBooking.movie.poster}
-            alt={selectedBooking.movie.title}
-            className="w-24 h-36 object-cover rounded"
-          />
-          <div>
-            <h2 className="text-2xl font-bold mb-2">{selectedBooking.movie.title}</h2>            
-            <p className="text-xl font-semibold text-blue-600">Showtime: {selectedBooking.showtime}</p>
-            <p className="text-gray-600 mb-1">{rated} • {selectedBooking.movie.genre} • ⭐ {selectedBooking.movie.review_score}</p>
-            <p className="text-gray-600 mb-1">Duration: {selectedBooking.movie.duration} minutes</p>
-            {/* Update with booking info*/}
-            <p className="text-gray-600 mb-1">Theater __</p>
-          </div>
-        </div>
-      </div>
 
-         <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <div className='flex-row justify-self-center'>
-                <div className='flex-col justify-self-center'>
-                    <button className='bg-black text-white m-3 pr-48 pl-48 pt-1 pb-1 mb-5 cursor-default'>Screen</button>
+            {bookingInfo && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div className="flex items-start space-x-4">
+                        <img
+                            src={bookingInfo.movie.poster}
+                            alt={bookingInfo.movie.title}
+                            className="w-20 h-28 object-cover rounded"
+                        />
+                        <div>
+                            <h2 className="text-xl font-semibold">{bookingInfo.movie.title}</h2>
+                            <p className="text-gray-600">{bookingInfo.showtime}</p>
+                        </div>
+                    </div>
                 </div>
-                
-                <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a1handleSelect}>A1</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a2handleSelect}>A2</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a3handleSelect}>A3</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a4handleSelect}>A4</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a5handleSelect}>A5</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${a6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={a6handleSelect}>A6</button>
+            )}
 
+            {loading && <p>Loading…</p>}
 
-                </div>
-                <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b1handleSelect}>B1</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b2handleSelect}>B2</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b3handleSelect}>B3</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b4handleSelect}>B4</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b5handleSelect}>B5</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${b6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={b6handleSelect}>B6</button>
-                </div>
-                <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c1handleSelect}>C1</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c2handleSelect}>C2</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c3handleSelect}>C3</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c4handleSelect}>C4</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c5handleSelect}>C5</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${c6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={c6handleSelect}>C6</button>
-                </div>
-                <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d1handleSelect}>D1</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d2handleSelect}>D2</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d3handleSelect}>D3</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d4handleSelect}>D4</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d5handleSelect}>D5</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${d6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={d6handleSelect}>D6</button>
-                </div>
-                <div className='flex-col justify-self-center'>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e1selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e1handleSelect}>E1</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e2selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e2handleSelect}>E2</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e3selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e3handleSelect}>E3</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e4selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e4handleSelect}>E4</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e5selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e5handleSelect}>E5</button>
-                    <button className={`m-1 p-3 w-12 font-bold rounded-lg duration-200 hover:bg-blue-900 ${e6selected? "bg-blue-900 text-white" : "bg-blue-500"}`} onClick={e6handleSelect}>E6</button>
-                </div>
-                <div className='flex-col'>
-                    <h1  className="text-xl font-semibold m-2 justify-self-center">{numSeats} seats selected</h1>
+            <div className="grid grid-cols-8 gap-2 mb-6">
+                {seats.map((seat) => {
+                    const isSelected = selected.some((s) => s.id === seat.id);
+                    const disabled = seat.is_reserved;
+                    return (
+                        <button
+                            key={seat.id}
+                            onClick={() => toggleSeat(seat)}
+                            disabled={disabled}
+                            className={`px-3 py-2 rounded border
+                ${disabled ? "bg-gray-300 cursor-not-allowed" :
+                                    isSelected ? "bg-green-500 text-white" : "bg-white"}`}
+                            title={`${seat.row}${seat.number}`}
+                        >
+                            {seat.row}{seat.number}
+                        </button>
+                    );
+                })}
+            </div>
 
+            {/* Selected seats + ticket type panel */}
+            {selected.length > 0 && (
+                <div className="mb-6 bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold mb-3">Selected Seats</h3>
+                    <div className="space-y-2">
+                        {selected.map((s) => (
+                            <div key={s.id} className="flex items-center justify-between gap-3">
+                                <span className="font-medium">{s.row}{s.number}</span>
+                                <select
+                                    className="border rounded p-2"
+                                    value={ticketTypes[s.id] ?? "Adult"}
+                                    onChange={(e) =>
+                                        setTicketTypes((prev) => ({ ...prev, [s.id]: e.target.value }))
+                                    }
+                                >
+                                    <option value="Adult">Adult - ${PRICE.Adult.toFixed(2)}</option>
+                                    <option value="Senior">Senior - ${PRICE.Senior.toFixed(2)}</option>
+                                    <option value="Child">Child - ${PRICE.Child.toFixed(2)}</option>
+                                </select>
+                                <span className="text-sm text-gray-600">
+                                    ${(PRICE[ticketTypes[s.id]] ?? PRICE.Adult).toFixed(2)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+            )}
+
+            <div className="space-y-2 max-w-md">
+                <div className="text-lg">Total: ${total.toFixed(2)}</div>
+                <input
+                    className="border p-2 w-full"
+                    placeholder="Full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                />
+                <input
+                    className="border p-2 w-full"
+                    placeholder="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <button
+                    onClick={book}
+                    disabled={loading || selected.length === 0}
+                    className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+                >
+                    Book Now
+                </button>
             </div>
         </div>
-
-        <div className='justify-self-center'>
-            <button className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg" onClick={handleGoCheckout}>
-            Continue to Checkout
-            </button>
-        </div>
-        </div>
-    )
+    );
 }
-
-export default SeatingPage;

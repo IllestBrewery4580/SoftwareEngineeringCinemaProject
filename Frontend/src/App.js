@@ -15,6 +15,7 @@ import ForgotVerification from './components/ForgotVerification';
 import AdminLogin from './components/AdminLogin'
 import Manage from "./components/Manage"
 import ManageMovieDetails from "./components/ManageMovieDetails"
+import SeatSelectionPage from "./components/SeatSelectionPage";
 import SeatingPage from './components/SeatingPage';
 import Checkout from './components/Checkout';
 

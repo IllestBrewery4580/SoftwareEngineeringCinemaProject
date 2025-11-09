@@ -1,5 +1,6 @@
 'use client'
 import { useNavigate } from 'react-router-dom';
+import { fetchSeats, createBooking } from "../api";
 
 const BookingPage = ({ selectedBooking, getNumSeats, numSeats }) => {
   const navigate = useNavigate();
@@ -8,8 +9,8 @@ const BookingPage = ({ selectedBooking, getNumSeats, numSeats }) => {
   }
 
   const handleSeating = () => {
-    navigate('/booking/seatselection');
-    getNumSeats(() => numSeats = 0);
+    navigate('/booking/seatselection', { state: { showId: 1, selectedBooking } });
+    getNumSeats(() => (numSeats = 0));
   }
 
   var rated = null;
