@@ -19,13 +19,34 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
 
     
     const plusTicketAdult = () => {
-            getNumSeats(() => numSeats - 1); 
-            setAdultTicks(() => adultTicks + 1);   
+        getNumSeats(() => numSeats - 1); 
+        setAdultTicks(() => adultTicks + 1);   
     }
 
+    {/*Setting number of each ticket type*/}
     const minusTicketAdult = () => {
-            getNumSeats(() => numSeats + 1);
-            setAdultTicks(() => adultTicks - 1);
+        getNumSeats(() => numSeats + 1);
+        setAdultTicks(() => adultTicks - 1);
+    }
+
+    const plusTicketChild = () => {
+        getNumSeats(() => numSeats - 1); 
+        setChildTicks(() => childTicks + 1); 
+    }
+
+    const minusTicketChild = () => {
+        getNumSeats(() => numSeats + 1);
+        setChildTicks(() => childTicks - 1);
+    }
+
+    const plusTicketSenior = () => {
+        getNumSeats(() => numSeats - 1); 
+        setSeniorTicks(() => seniorTicks + 1); 
+    }
+
+    const minusTicketSenior = () => {
+        getNumSeats(() => numSeats + 1);
+        setSeniorTicks(() => seniorTicks - 1);
     }
 
     {/*Rating*/}
@@ -108,8 +129,8 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
                     <div className=" justify-center">
                     <h1>{childTicks} tickets</h1>
                     </div>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" >+</button>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" >-</button>
+                    <button className={`bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white ${numSeats > 0 && numSeats < totalTicks +1? "bg-blue-500" : "bg-gray-400 text-gray-700 hover:text-gray-700 cursor-not-allowed"}`} disabled={numSeats < 1 || numSeats > totalTicks} onClick={plusTicketChild}>+</button>
+                    <button className={`bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white ${numSeats > -1 && numSeats < totalTicks + 1 && childTicks > 0? "bg-blue-500" : "bg-gray-400 text-gray-700 hover:text-gray-700 cursor-not-allowed"}`} disabled={numSeats < -1 || numSeats == totalTicks || childTicks < 1} onClick={minusTicketChild}>-</button>
                 </div>
             </div>
             </div>
@@ -125,8 +146,8 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
                     <div className=" justify-center">
                     <h1>{seniorTicks} tickets</h1>
                     </div>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" >+</button>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" >-</button>
+                    <button className={`bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white ${numSeats > 0 && numSeats < totalTicks +1? "bg-blue-500" : "bg-gray-400 text-gray-700 hover:text-gray-700 cursor-not-allowed"}`} disabled={numSeats < 1 || numSeats > totalTicks} onClick={plusTicketSenior}>+</button>
+                    <button className={`bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white ${numSeats > -1 && numSeats < totalTicks + 1 && seniorTicks > 0? "bg-blue-500" : "bg-gray-400 text-gray-700 hover:text-gray-700 cursor-not-allowed"}`} disabled={numSeats < -1 || numSeats == totalTicks || seniorTicks < 1} onClick={minusTicketSenior}>-</button>
                 </div>
             </div>
             </div>
