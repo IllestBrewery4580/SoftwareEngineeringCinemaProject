@@ -45,6 +45,9 @@ class Account(models.Model):
 
     def get_card_no(self):
         return fernet.decrypt(self.card_no_encrypted).decode()
+    
+    def get_last4(self):
+        return self.get_card_no()[-4:]
 
     def set_cvv(self, cvv):
         self.cvv_encrypted = fernet.encrypt(cvv.encode())

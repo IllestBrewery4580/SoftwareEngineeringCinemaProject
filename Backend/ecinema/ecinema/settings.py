@@ -1,3 +1,4 @@
+
 """
 Django settings for ecinema project.
 
@@ -29,8 +30,11 @@ ENCRYPTION_KEY  = b'5C4DB6l2g4Oy97VkMpW60QgDCKdK6VI1IAxqJkOAk9E='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+CORS_ALLOW_CREDENTIALS = True
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Application definition
 
@@ -61,9 +65,18 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:3000",
     "http://localhost:3000",   # React dev server
 ]
 
+CORS_TRUSTED_ORIGINS = [
+    "http://localhost:3000",   # React dev server
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",   # React dev server
+]
 
 ROOT_URLCONF = 'ecinema.urls'
 
@@ -165,5 +178,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_app_password'  # Use App Password, not your Gmail password
+EMAIL_HOST_USER = 'simplymovies4050@gmail.com'
+EMAIL_HOST_PASSWORD = 'jjdo iwff wmig ezyf'  # Use App Password, not your Gmail password
