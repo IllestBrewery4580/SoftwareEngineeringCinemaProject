@@ -74,17 +74,6 @@ const BookingPage = ({ selectedBooking, getNumSeats, numSeats }) => {
         </div>
       </div>
 
-      {/* Select seat/ price/ payment/ confirm booking */}
-      <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h3 className="text-lg font-semibold text-yellow-800 mb-2">This part will be developed late for:</h3>
-        <ul className="text-yellow-700 space-y-1">
-          <li>- Interactive seat selection</li>
-          <li>- Pricing calculation</li>
-          <li>- Payment processing</li>
-          <li>- Booking confirmation</li>
-        </ul>
-      </div>
-
       <div className="mt-6 flex justify-center">
         <button 
           className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg"
