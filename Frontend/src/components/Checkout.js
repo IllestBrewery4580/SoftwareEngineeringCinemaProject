@@ -17,13 +17,20 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
     const [promoCode, setPromoCode] = useState("");
     const handlePromoCode = (promoCode) => setPromoCode(promoCode);
 
-    
-    const plusTicketAdult = () => {
-        getNumSeats(() => numSeats - 1); 
-        setAdultTicks(() => adultTicks + 1);   
+    {/*Can be changed if needed */}
+    const[totalPrice, setTotalPrice] = useState(0);
+    const handleTotalPrice = () => {
+        setTotalPrice(() => (adultTicks * 10) + (childTicks * 7) + (seniorTicks * 7));
+        console.log("total price calculated " + {totalPrice});
     }
 
-    {/*Setting number of each ticket type*/}
+      {/*Setting number of each ticket type*/}
+    const plusTicketAdult = () => {
+        getNumSeats(() => numSeats - 1); 
+        setAdultTicks(() => adultTicks + 1); 
+        
+    }
+
     const minusTicketAdult = () => {
         getNumSeats(() => numSeats + 1);
         setAdultTicks(() => adultTicks - 1);
@@ -151,23 +158,41 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
                 </div>
             </div>
             </div>
+            <div className="justify-self-center">
+                <button className={`bg-blue-500 p-3 m-2 ml-5 rounded-xl transition-colors hover:text-white ${numSeats != 0? "bg-gray-400 text-gray-700 hover:text-gray-700 cursor-not-allowed " : "bg-blue-500"}`} disabled={false} onClick={handleTotalPrice}>Calculate Final Total</button>
+            </div>
+        </div>
 
+            <div className="bg-gray-50 rounded-lg p-3 mb-6 flex-row">
             <div className="justify-items-center flex-col p-3">
-                <h2 className="text-2xl font-bold mb-2">Price Total: $__.__</h2> 
-                <div className="flex">
-                    <input
-                        type="text"
-                        placeholder="Promo Code"
-                        value={promoCode}
-                        onChange={(e) => handlePromoCode(e.target.value)}
-                        className="pl-4 pr-4 py-2 m-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button className="bg-blue-500 p-3 m-2 ml-5 rounded-xl transition-colors hover:text-white">Enter Code</button>
+
+                <div className="flex" >
+                <div className="flex-row m-10 bg-gray-100 rounded-lg p-6 ">
+                <div className='flex items-center mb-2 justify-between'>  
+                    <h1 className={` ${adultTicks > 0? "visible" : "hidden"}`}>{adultTicks} adult tickets</h1>  
+                    <h1 className={` ${adultTicks > 0? "visible" : "hidden"}`}>${adultTicks * 10} </h1>   
+                </div>
+                <hr className={`${adultTicks > 0 && childTicks > 0? "visible" : "hidden"}`}/>
+                <div className='flex items-center mb-2 justify-between'> 
+                    <h1 className={` ${childTicks > 0? "visible" : "hidden"}`}> {childTicks} child tickets</h1> 
+                    <h1 className={` ${childTicks > 0? "visible" : "hidden"}`}>${childTicks * 7} </h1>      
+                </div>
+                <hr className={` ${childTicks > 0 && seniorTicks > 0 || adultTicks > 0 && seniorTicks > 0? "visible" : "hidden"}`}/>
+                <div className='flex items-center mb-2 justify-between'>  
+                    <h1 className={` ${seniorTicks > 0? "visible" : "hidden"}`}> {seniorTicks} senior tickets</h1> 
+                    <h1 className={` ${seniorTicks > 0? "visible" : "hidden"}`}>${seniorTicks * 7}</h1> 
+                </div>
+                
+                <h2 className="text-2xl font-bold mb-2">Price Total: ${totalPrice}.00</h2>                 
+                </div>
+                <div className="m-10 bg-gray-100 rounded-lg p-6">
+                    <h1>sign in if u have account or create account</h1>
+                </div>
+
                 </div>
             </div>
-
-
             </div>
+
         </div>
     );
 }
