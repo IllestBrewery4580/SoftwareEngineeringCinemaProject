@@ -8,6 +8,8 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('adminlogin/', views.admin_login_view, name='admin_login'),
     path('logout/', views.logout_view, name='logout'),
+    path('isAuth/', views.isAuth, name='isAuth'),
+    path('getUsers/', views.get_users, name='get_users'),
     path('csrf/', views.getCSRFToken, name='getCSRFToken'),
 
     # Password routes

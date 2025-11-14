@@ -1,22 +1,29 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import LoginPage from './components/LoginPage';
-import CreateAccountPage from './components/CreateAccountPage';
-import Profile from './components/Profile';
-import HomePage from './components/HomePage';
-import BookingPage from './components/BookingPage';
-import MovieDetailsPage from './components/MovieDetailsPage';
-import NewPassword from './components/NewPassword';
-import ForgotPasswordPage from './components/ForgotPasswordPage';
-import ResetPassword from './components/ResetPassword';
-import Confirmation from './components/Confirmation'
-import ForgotVerification from './components/ForgotVerification';
-import AdminLogin from './components/AdminLogin'
-import Manage from "./components/Manage"
-import ManageMovieDetails from "./components/ManageMovieDetails"
-import SeatingPage from './components/SeatingPage';
-import Checkout from './components/Checkout';
+import LoginPage from './components/Account/LoginPage';
+import CreateAccountPage from './components/Account/CreateAccountPage';
+import Profile from './components/Account/Profile';
+import HomePage from './components/App/HomePage';
+import BookingPage from './components/Checkout/BookingPage';
+import MovieDetailsPage from './components/App/MovieDetailsPage';
+import NewPassword from './components/Account/NewPassword';
+import ForgotPasswordPage from './components/Account/ForgotPasswordPage';
+import ResetPassword from './components/Account/ResetPassword';
+import Confirmation from './components/Account/Confirmation'
+import ForgotVerification from './components/Account/ForgotVerification';
+import AdminLogin from './components/Admin/AdminLogin'
+import Manage from "./components/Admin/Manage"
+import ManageMovies from "./components/Admin/ManageMovies"
+import ManageUsers from "./components/Admin/ManageUsers"
+import ManagePromotions from "./components/Admin/ManagePromotions"
+import ManageMovieDetails from "./components/Admin/ManageMovieDetails"
+import ManageShowtimes from './components/Admin/ManageShowtimes';
+import AddMovie from './components/Admin/AddMovie';
+import SeatingPage from './components/Checkout/SeatingPage';
+import PrivateRoutes from './components/App/PrivateRoute';
+import Checkout from './components/Checkout/Checkout';
+
 
 function App() {
   // State management
@@ -30,22 +37,53 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const[numSeats, setNumSeats] = useState(0);
-  
 
   // Fetch from backend on mount
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/api/movies/")
+    fetch("http://localhost:8000/api/movies/", {
+      method: 'GET',
+      credentials:'include',
+    })
       .then((res) => res.json())
       .then((data) => {
         setMovies(data);
-        console.log(data)
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching movies:", err);
         setLoading(false);
       });
+  }, []);
+
+  console.log(movies)
+
+  // Checks if logged in
+  useEffect(() => {
+    const checkAuth = async() => {
+      try {
+        const response = await fetch("http://localhost:8000/accounts/isAuth/", {
+          method: 'GET',
+          credentials:'include',
+        })
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+          setIsLoggedIn(true)
+
+          if(data.isAuth === 'Admin') {
+            setIsAdmin(true)
+          }
+        } else {
+          setIsAdmin(false)
+          setIsLoggedIn(false)
+        }
+      } catch (error) {
+        console.error("Authentication failed");
+        setIsLoggedIn(false);
+      }
+    }
+    checkAuth();
   }, []);
 
   // Handles logout function
@@ -78,8 +116,8 @@ function App() {
       m.genre ? m.genre.split(',').map(g => g.trim()) : []
     )
   ))];
+
   // Filtered movies based on search and genre
-  
   const filteredMovies = movies.filter(movie => {
     const matchesTitle = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre = selectedGenre === 'all' || 
@@ -103,7 +141,7 @@ function App() {
 
   const showManageMovie = (movie) => {
     setSelectedMovie(movie);
-    navigate("/manage/movie_details");
+    navigate("/managemovies/movie_details");
   }
   
   return (
@@ -130,6 +168,19 @@ function App() {
     
       <main className="container mx-auto px-4 py-8">
         <Routes>
+          <Route element={<PrivateRoutes/>}>
+            <Route path="/profile" element={<Profile />}></Route>
+            <Route path="/manage" element={<Manage/>}></Route>
+            <Route path="/managemovies" element={<ManageMovies 
+              movies={movies}
+              showManageMovie={showManageMovie}
+              setSelectedMovie={setSelectedMovie}/>}></Route>
+            <Route path="/manageusers" element={<ManageUsers/>}></Route>
+            <Route path="/managepromo" element={<ManagePromotions/>}></Route>
+            <Route path='/manage/movie_details/:movieId' element={<ManageMovieDetails/>}></Route>
+            <Route path='/manage/movie_details/:movieId/showtimes' element={<ManageShowtimes/>}></Route>
+            <Route path="/addmovie" element={<AddMovie />}></Route>
+          </Route>
           <Route path="/" element={<HomePage 
             searchQuery={searchQuery}
             handleSearch={handleSearch}
@@ -153,13 +204,6 @@ function App() {
             onAdminSuccess={() => {
               setIsLoggedIn(true);
               setIsAdmin(true)}}/></div>}></Route>
-          <Route path="/profile" element={<Profile />}></Route>
-          <Route path="/manage" element={<Manage 
-            movies={movies}
-            showManageMovie={showManageMovie}
-            setSelectedMovie={setSelectedMovie}/>}></Route>
-          <Route path="/manage/movie_details" element={<ManageMovieDetails
-            selectedMovie={selectedMovie}/>}></Route>
           <Route path="/create" element={<CreateAccountPage />}></Route>
           <Route path="/profile/newpassword" element={<NewPassword />}></Route>
           <Route path="/login/forgotpassword" element={<ForgotPasswordPage />}></Route>
@@ -168,11 +212,10 @@ function App() {
           <Route path="/create/verification" element={<Confirmation />}></Route>
           <Route path="/booking/seatselection" element={<SeatingPage 
             selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-            />}></Route>
-            <Route path="/booking/checkout" element={<Checkout 
+          />}></Route>
+          <Route path="/booking/checkout" element={<Checkout 
             selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-            />}></Route>
-
+          />}></Route>
         </Routes>
       </main>
 
