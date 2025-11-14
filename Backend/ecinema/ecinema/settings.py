@@ -25,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-3(9i%aopj0qpg0p$yj*9_q_r72(2c)n#+^0zcd9o##_w8#v#0q'
 
+ENCRYPTION_KEY  = b'5C4DB6l2g4Oy97VkMpW60QgDCKdK6VI1IAxqJkOAk9E='
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -63,6 +65,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:3000",
     "http://localhost:3000",   # React dev server
     "http://127.0.0.1:3000",
 ]
@@ -72,6 +75,7 @@ CORS_TRUSTED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:3000",
     "http://localhost:3000",   # React dev server
     "http://127.0.0.1:3000",
 ]

@@ -24,13 +24,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from movie.views import MovieViewSet, MovieShowViewSet
+#from movie.views import MovieViewSet, MovieShowViewSet
+from movie.views import MovieViewSet, MovieShowViewSet, ShowViewSet
+from booking.views import BookingViewSet
+#from cinemabooking.views import BookingViewSet, ShowViewSet
 from django.conf import settings
 from django.conf.urls.static import static
 
 router = DefaultRouter()
 router.register(r'movies', MovieViewSet)
 router.register(r'showtimes', MovieShowViewSet)
+router.register(r'shows', ShowViewSet, basename='show')
+router.register(r'bookings', BookingViewSet, basename='booking')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
