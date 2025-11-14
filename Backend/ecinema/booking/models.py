@@ -1,6 +1,6 @@
 from django.db import models
 from accounts.models import CustomUser, Account
-from movie.models import MovieShow
+from movie.models import MovieShow, Seat
 
 class TicketType(models.Model):
     name = models.CharField(max_length=20, unique=True)
@@ -25,7 +25,7 @@ class Booking(models.Model):
 class Ticket(models.Model):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='tickets')
     ticket_type = models.ForeignKey(TicketType, on_delete=models.SET_NULL, null=True)
-    seat = models.CharField(max_length=10)
+    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
     def __str__(self):

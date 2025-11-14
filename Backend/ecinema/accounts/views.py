@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
@@ -15,6 +15,8 @@ from .models import EmailOTP, BillingAddress, Account, UserType, HomeAddress
 from .utils import generate_otp
 import json
 
+User = get_user_model()
+
 def register(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -26,7 +28,6 @@ def register(request):
         phone = data.get('phone')
         enroll_for_promotions = data.get('enroll_for_promotions')
 
-        User = get_user_model()
         if User.objects.filter(email=email).exists():
             return JsonResponse({'status': 'error', 'message': 'Email already exists. Please try again.'})
         
@@ -70,7 +71,6 @@ def verify_otp(request):
         if not user_id:
             return JsonResponse({'status': 'error', 'message': 'Session expired. Please register again.'}, status=400)
 
-        User = get_user_model()
         user = User.objects.get(id=user_id)
         otp_record = EmailOTP.objects.get(user=user)
 
@@ -91,7 +91,6 @@ def login_view(request):
         email = data.get('email')  # or email
         password = data.get('password')
 
-        User = get_user_model()
         try:
             if User.objects.filter(email=email).exists():
                 user_info = User.objects.get(email=email)
@@ -101,7 +100,7 @@ def login_view(request):
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User does not exist!'})
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=email, password=password)
         if user is not None:
             if user.is_active:
                 login(request, user)
@@ -120,14 +119,13 @@ def admin_login_view(request):
         email = data.get('email')  # or email
         password = data.get('password')
 
-        user = get_user_model()
         try:
-            user_info = user.objects.get(email=email)
+            user_info = User.objects.get(email=email)
             username = user_info.username
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'User does not exist!'})
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=email, password=password)
         if user is not None:
             if user.is_active:
                 if user.user_type.name == 'Admin':
@@ -142,17 +140,19 @@ def admin_login_view(request):
 
     return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
 
+@csrf_exempt
 @login_required
 def get_profile(request):
     user = request.user
-
+    user_id = request.user.id
     try:
-        home_address = HomeAddress.objects.get(user=user)
+        home_address = HomeAddress.objects.get(user=user_id)
     except HomeAddress.DoesNotExist:
         home_address = None
     
     accounts = []
     for acc in Account.objects.filter(user=user):
+        print(acc.get_card_no(), acc.get_cvv())
         try:
             addr = BillingAddress.objects.get(card=acc)
         except BillingAddress.DoesNotExist:
@@ -189,6 +189,8 @@ def get_profile(request):
 
     return JsonResponse(profile_data)
 
+@csrf_exempt
+@login_required
 def update_profile(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -197,9 +199,9 @@ def update_profile(request):
         lname = data.get('lname')
         phone = data.get('phone')
         enroll_for_promotions = data.get('enroll_for_promotions')
-        home_address = data.get('homeAddress', [])
-        
+        home_address = data.get('homeAddress', [])    
         payment_data = data.get('payment', [])
+        
         for pay in payment_data:
             # Create or update the Account entry
             acc, created = Account.objects.get_or_create(
@@ -211,12 +213,14 @@ def update_profile(request):
             acc.set_card_no(pay['cardNum'])
             acc.set_cvv(pay['cardCVV'])
             acc.expiration_date = datetime.strptime(pay['cardExp'], "%m/%Y").date()
+            # acc.expiration_date = date(2027, 5, 1)
             acc.save()
 
             # Update or create billing address
             BillingAddress.objects.update_or_create(
                 card=acc,
                 defaults={
+                    'user': acc.user,
                     'address_line': pay.get('address_line', ''),
                     'city': pay.get('city', ''),
                     'state': pay.get('state', ''),
@@ -388,10 +392,11 @@ def add_address(request):
         data = json.loads(request.body)
         address = BillingAddress.objects.create(
             user=request.user,
-            street=data.get('street'),
+            address_line=data.get('address_line', ''),
             city=data.get('city'),
             state=data.get('state'),
-            postal_code=data.get('postal_code'),
+            zipcode=data.get('zipcode', ''),
+            country=data.get('country')
         )
         return JsonResponse({'message': 'Address added successfully', 'address_id': address.id})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
@@ -407,25 +412,33 @@ def add_payment(request):
         cvv = data.get('cvv')  # optional, not stored in model
 
         try:
+            address = BillingAddress.objects.get(id=data.get('address_id'), user=request.user)
+        except BillingAddress.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Address not found'}, status=404)
+        
+        # Create Account Entry
+        try:
             account = Account.objects.create(
                 user=request.user,
                 card_no=card_no,
                 card_type=card_type,
                 expiration_date=datetime.strptime(expiry, "%m/%Y").date()
             )
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            account.set_card_no(card_no) # use model encryption method
+            account.set_cvv(cvv) # encrypt cvv
+            account.save()
 
-        BillingAddress.objects.create(
-            card=account,
-            address_line=data.get('address_line', ''),
-            city=data.get('city', ''),
-            state=data.get('state', ''),
-            zipcode=data.get('zipcode', ''),
-            country=data.get('country', 'USA')
-        )
-        return JsonResponse({'message': 'Payment info added successfully'})
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+            # Link BillingAddress
+            address.card = account
+            address.save()
+        except Exception as e:
+            # Rollback account if address creatoion fails
+            if 'account' in locals():
+                account.delete()
+            return JsonResponse({'error': str(e)}, status=400)
+    
+        return JsonResponse({'status': 'success', 'message': 'Payment info added successfully'})
+
 
 @login_required
 @require_http_methods(["DELETE"])
