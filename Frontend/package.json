@@ -17,6 +17,7 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
     "react-scripts": "5.0.1",
+    "sqlite3": "^5.1.7",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -43,5 +44,14 @@
       "last 1 safari version"
     ]
   },
+<<<<<<< HEAD:Frontend/package.json
   "proxy": "http://127.0.0.1:8001"
 }
+=======
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+>>>>>>> 9586808 (WIP: local backend and booking updates):package.json
