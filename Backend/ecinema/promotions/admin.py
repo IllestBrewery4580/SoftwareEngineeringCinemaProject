@@ -21,7 +21,7 @@ def send_promotion_email(modeladmin, request, queryset):
     for promo in queryset:
         subject = f"New Promotion: {promo.promo_code}"
         message = (
-            f"Enjoy {promo.discount_percent}% OFF!\n\n"
+            f"Enjoy {promo.discount_percent:.0f}% OFF!\n\n"
             f"Valid from {promo.start_date} to {promo.end_date}\n"
             f"{promo.description}"
         )
