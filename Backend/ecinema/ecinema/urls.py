@@ -31,9 +31,11 @@ from django.conf.urls.static import static
 router = DefaultRouter()
 router.register(r'movies', MovieViewSet)
 router.register(r'showtimes', MovieShowViewSet)
+# router.register(r'promotions', include('promotions.urls'))
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("promotions/", include("promotions.urls")),
     path('api/', include(router.urls)),   # API lives under /api/
     path('accounts/', include('accounts.urls')),   # existing accounts app
     # path('accounts/', include('Logout.urls')),     # include Logout app URLs
