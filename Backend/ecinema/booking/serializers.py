@@ -1,15 +1,17 @@
 from rest_framework import serializers
-from .models import Booking, Ticket
+from .models import Booking, Ticket, TicketType
 from movie.models import Seat, MovieShow
+from .factories import TicketFactory
 
 class BookingSeatSerializer(serializers.ModelSerializer):
     seat_id = serializers.PrimaryKeyRelatedField(
         queryset=Seat.objects.all(), source="seat", write_only=True
     )
+    ticket_type = serializers.CharField(write_only=True)
 
     class Meta:
         model = Ticket
-        fields = ["seat_id", "price"]
+        fields = ["seat_id", "price", "ticket_type"]
 
 class BookingSerializer(serializers.ModelSerializer):
     seats = BookingSeatSerializer(many=True, write_only=True)
@@ -17,7 +19,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ["id", "user", "show", "total_price", "no_of_tickets", "booking_time"]
+        fields = ["id", "user", "show", "seats", "total_price", "no_of_tickets", "booking_time"]
         read_only_fields = ["id", "total_price", "booking_time"]
 
     def validate(self, data):
@@ -32,8 +34,26 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         seats_data = validated_data.pop("seats")
-        total = sum([float(s.get("price", 10.0)) for s in seats_data])
-        booking = Booking.objects.create(total_price=total, **validated_data)
+        validated_data["total_price"] = 0.00    
+        booking = Booking.objects.create(**validated_data)
+        
+        total_price = 0.00
         for s in seats_data:
-            Ticket.objects.create(booking=booking, **s)
+            seat = s["seat"]
+            ticket_type = TicketType.objects.get(name=s["ticket_type"])
+
+            factory = TicketFactory.create(ticket_type)
+            price = factory.get_price()
+
+            Ticket.objects.create(
+                booking=booking,
+                seat=seat,
+                ticket_type=ticket_type,
+                price=price
+            )
+
+            total_price += price
+
+        booking.total_price = total_price
+        booking.save()
         return booking

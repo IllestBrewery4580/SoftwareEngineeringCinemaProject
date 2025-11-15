@@ -1,53 +1,43 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
-
+const Checkout = () => {
+    const location = useLocation();
+    const {showId, total, seats, movie, showtime} = location.state || {};
     const navigate = useNavigate();
+    
     const handleSeating = () => {
-    navigate('/booking/seatselection');
-    getNumSeats(() => numSeats = 0);
+        navigate('/booking/seatselection', {
+            state: {
+                showId,
+                seats: seats,
+                movie: movie,
+                showtime: showtime
+            }
+        });
     }
-
-    const [totalTicks, setTotalTicks] = useState(numSeats);
-    const [adultTicks, setAdultTicks] = useState(0);
-    const [childTicks, setChildTicks] = useState(0);
-    const [seniorTicks, setSeniorTicks] = useState(0);
 
     const [promoCode, setPromoCode] = useState("");
     const handlePromoCode = (promoCode) => setPromoCode(promoCode);
 
 
-    const plusTicketAdult = () => {
-        if(numSeats > 0) {
-            getNumSeats(() => numSeats--);
-        }
-    }
-
-    const minusTicketAdult = () => {
-        if(numSeats < totalTicks) {
-            getNumSeats(() => numSeats++);
-        }
-    }
-
+    console.log("checkout", showtime)
     {/*Rating*/}
     var rated = null;
-  if(selectedBooking.movie.rating == 1) {
-    rated = "G"
-  } else if (selectedBooking.movie.rating == 2) {
-    rated = "PG"
-  } else if (selectedBooking.movie.rating == 3) {
-    rated = "PG-13"
-  } else {
-    rated = "R"
-  }
-
-     if (!selectedBooking) return null;
+    if(movie.rating == 1) {
+        rated = "G"
+    } else if (movie.rating == 2) {
+        rated = "PG"
+    } else if (movie.rating == 3) {
+        rated = "PG-13"
+    } else {
+        rated = "R"
+    }
 
     return (
         <div>
             {/* Selected Movie & Showtime */}
-            <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
+            <div className="border bg-gray-50 rounded-lg p-6 mb-6 flex-row">
             <div className='flex items-center mb-6 justify-between'>
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800">Checkout</h1>
@@ -62,89 +52,44 @@ const Checkout = ({selectedBooking, numSeats, getNumSeats}) => {
             </div>
             <div className="flex items-start space-x-4">
             <img 
-                src={selectedBooking.movie.poster}
-                alt={selectedBooking.movie.title}
+                src={movie.poster}
+                alt={movie.title}
                 className="w-24 h-36 object-cover rounded"
             />
             <div>
-                <h2 className="text-2xl font-bold mb-2">{selectedBooking.movie.title}</h2>            
-                <p className="text-xl font-semibold text-blue-600">Showtime: {selectedBooking.showtime}</p>
-                <p className="text-gray-600 mb-1">{rated} • {selectedBooking.movie.genre} • ⭐ {selectedBooking.movie.review_score}</p>
-                <p className="text-gray-600 mb-1">Duration: {selectedBooking.movie.duration} minutes</p>
+                <h2 className="text-2xl font-bold mb-2">{movie.title}</h2>            
+                <p className="text-xl font-semibold text-blue-600">Showtime: {showtime.label}</p>
+                <p className="text-gray-600 mb-1">{rated} • {movie.genre} • ⭐ {movie.review_score}</p>
+                <p className="text-gray-600 mb-1">Duration: {movie.duration} minutes</p>
                 {/* Update with booking info*/}
-                <p className="text-gray-600 mb-1">Theater __</p>
+                <p className="text-gray-600 mb-1">Theater {showtime.auditorium}</p>
             </div>
             </div>
         </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
-             <h2 className="text-2xl font-bold mb-2">Tickets selected: {numSeats}</h2> 
-             <h1>total ticks: {totalTicks}</h1>
-             <h1>seats: [list of seats]</h1>
+             <h2 className="text-2xl font-bold mb-2">Tickets selected: {seats.length}</h2> 
+             <h1 className="text-xl font-semibold mb-2">Seats:</h1>
+            <h1>{
+                seats.map((seat, index) => (
+                    <span key={index} className="mr-2">
+                        {seat.label} &nbsp;&nbsp;-&nbsp;&nbsp; {seat.type} &nbsp;&nbsp;-&nbsp;&nbsp; ${seat.price}
+                    </span>
+                ))  
+            }</h1>
              
-             {/*Adult Ticket*/}
-             <div className="justify-items-center">
-            <div className="bg-gray-200 p-5 m-3 rounded-xl flex justify-between w-2/3">
-                <div className="justify-self-center">
-                <h1 className="font-extrabold text-xl text-blue-950">Adult Ticket - $10</h1>
-                <h1>Ages 12-65</h1>
-                </div>
-                <div className="flex-col justify-items-center">
-                    <div className=" justify-center">
-                    <h1>{adultTicks} tickets</h1>
-                    </div>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={plusTicketAdult}>+</button>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={minusTicketAdult}>-</button>
-                </div>
-            </div>
-            </div>
-
-             {/*Child Ticket*/}
-             <div className="justify-items-center">
-            <div className="bg-gray-200 p-5 m-3 rounded-xl flex justify-between w-2/3">
-                <div className="justify-self-center">
-                <h1 className="font-extrabold text-xl text-blue-950">Child Ticket - $7</h1>
-                <h1>Ages 11 and under</h1>
-                </div>
-                <div className="flex-col justify-items-center">
-                    <div className=" justify-center">
-                    <h1>{childTicks} tickets</h1>
-                    </div>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={plusTicketAdult}>+</button>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={minusTicketAdult}>-</button>
-                </div>
-            </div>
-            </div>
-
-             {/*Senior Ticket*/}
-             <div className="justify-items-center">
-            <div className="bg-gray-200 p-5 m-3 rounded-xl flex justify-between w-2/3">
-                <div className="justify-self-center">
-                <h1 className="font-extrabold text-xl text-blue-950">Senior Ticket - $7</h1>
-                <h1>Ages 65 and up</h1>
-                </div>
-                <div className="flex-col justify-items-center">
-                    <div className=" justify-center">
-                    <h1>{seniorTicks} tickets</h1>
-                    </div>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={plusTicketAdult}>+</button>
-                    <button className="bg-blue-500 p-1 m-1 rounded-xl w-10 font-extrabold transition-colors hover:text-white" onClick={minusTicketAdult}>-</button>
-                </div>
-            </div>
-            </div>
-
-            <div className="justify-items-center flex-col p-3">
-                <h2 className="text-2xl font-bold mb-2">Price Total: $__.__</h2> 
+            <div className="justify-items-end flex-col p-3">
                 <div className="flex">
                     <input
                         type="text"
                         placeholder="Promo Code"
                         value={promoCode}
                         onChange={(e) => handlePromoCode(e.target.value)}
-                        className="pl-4 pr-4 py-2 m-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <button className="bg-blue-500 p-3 m-2 ml-5 rounded-xl transition-colors hover:text-white">Enter Code</button>
                 </div>
+                <h2 className="text-2xl font-bold mt-4">Price Total: ${total}</h2> 
             </div>
 
 

@@ -130,13 +130,20 @@ function App() {
   const handleFilter = (genre) => setSelectedGenre(genre);
   
   const showMovieDetails = (movie) => {
-    setSelectedMovie(movie);
-    navigate("/details");
+    navigate("/details", {
+      state: {
+        movie
+      }
+    });
   };
   
   const showBookingPage = (movie, showtime) => {
-    setSelectedBooking({ movie, showtime });
-    navigate("/booking")
+    navigate("/booking/", {
+      state: {
+        movie,
+        showtime
+      }
+    })
   };
 
   const showManageMovie = (movie) => {
@@ -180,6 +187,7 @@ function App() {
             <Route path='/manage/movie_details/:movieId' element={<ManageMovieDetails/>}></Route>
             <Route path='/manage/movie_details/:movieId/showtimes' element={<ManageShowtimes/>}></Route>
             <Route path="/addmovie" element={<AddMovie />}></Route>
+            <Route path="/booking/checkout" element={<Checkout />}></Route>
           </Route>
           <Route path="/" element={<HomePage 
             searchQuery={searchQuery}
@@ -192,14 +200,10 @@ function App() {
             showMovieDetails={showMovieDetails}
             showBookingPage={showBookingPage}
           />}></Route>
-          <Route path="/details" element={<MovieDetailsPage 
-            selectedMovie={selectedMovie}
-            showBookingPage={showBookingPage}
-          />}></Route>
-          <Route path="/booking" element={<BookingPage 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-          />}></Route>
-          <Route path="/login" element={<div className='justify-items-center'><LoginPage onLoginSuccess={() => setIsLoggedIn(true)}/></div>}></Route>
+          <Route path="/details" element={<MovieDetailsPage />}></Route>
+          <Route path="/booking" element={<BookingPage />}></Route>
+          <Route path="/login" element={<div className='justify-items-center'><LoginPage 
+            onLoginSuccess={() => setIsLoggedIn(true)}/></div>}></Route>
           <Route path="/adminlogin" element={<div className='justify-items-center'><AdminLogin 
             onAdminSuccess={() => {
               setIsLoggedIn(true);
@@ -210,12 +214,7 @@ function App() {
           <Route path="/login/forgotpassword/verify" element={<ForgotVerification />}></Route>
           <Route path="/login/forgotpassword/resetpassword" element={<ResetPassword />}></Route>
           <Route path="/create/verification" element={<Confirmation />}></Route>
-          <Route path="/booking/seatselection" element={<SeatingPage 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-          />}></Route>
-          <Route path="/booking/checkout" element={<Checkout 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-          />}></Route>
+          <Route path="/booking/seatselection" element={<SeatingPage />}></Route>
         </Routes>
       </main>
 

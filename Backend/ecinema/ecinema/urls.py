@@ -39,8 +39,10 @@ router.register(r'bookings', BookingViewSet, basename='booking')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("promotions/", include("promotions.urls")),
     path('api/', include(router.urls)),   # API lives under /api/
     path('accounts/', include('accounts.urls')),   # existing accounts app
+    path('bookings/', include('booking.urls')),   # existing accounts app
     # path('accounts/', include('Logout.urls')),     # include Logout app URLs
 ]
 

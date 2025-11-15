@@ -1,25 +1,23 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchSeats, createBooking } from "../../utils/api";
+import { fetchSeats } from "../../utils/fetchSeats"
+import { createBooking } from "../../utils/createBooking";
 
-export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) {
+export default function SeatingPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const showId = selectedBooking.showtime.id;     // fallback to 1 if not passed
-    const bookingInfo = location.state?.selectedBooking || selectedBooking;
+    const { noOfTickets, movie, showtime } = location.state || {};
+    const showId = showtime.id;     // fallback to 1 if not passed
 
     const [seats, setSeats] = useState([]);
     const [selected, setSelected] = useState([]);
     const [ticketTypes, setTicketTypes] = useState({});
-    const [fullName, setFullName] = useState("");
-    const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [numTickets, setNumTickets] = useState(1);
 
     const PRICE = { Adult: 12.5, Senior: 10.0, Child: 8.0 };
 
-    console.log(selectedBooking)
+    console.log("seating:" ,showtime)
     useEffect(() => {
         (async () => {
             setLoading(true);
@@ -34,11 +32,16 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
         })();
     }, [showId]);
 
-    console.log(seats)
     const toggleSeat = (seat) => {
         if (seat.is_reserved) return;
+        
+        const isSelected = selected.some((s) => s.id === seat.id);
+        if (!isSelected && selected.length >= noOfTickets) {
+            return;
+        }
+
         setSelected((prev) =>
-            prev.some((s) => s.id === seat.id)
+            isSelected
                 ? prev.filter((s) => s.id !== seat.id)
                 : [...prev, seat]
         );
@@ -70,21 +73,21 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
             0
         );
 
+        console.log(snapshotSelected)
         setLoading(true);
         try {
             await createBooking({
                 show: showId,
-                full_name: fullName,
-                email,
+                no_of_tickets: snapshotSelected.length,
                 seats: snapshotSelected.map((s) => ({
                     seat_id: s.id,
-                    price: PRICE[snapshotTypes[s.id]],
+                    ticket_type: snapshotTypes[s.id],
                 })),
             });
             // refresh and proceed (or send to checkout)
             setSelected([]);
             setTicketTypes({});
-            await setSeats(await fetchSeats(showId));
+            setSeats(await fetchSeats(showId));
             // example: go to checkout with summary
             navigate("/booking/checkout", {
                 state: {
@@ -95,7 +98,8 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
                         type: snapshotTypes[s.id],
                         price: PRICE[snapshotTypes[s.id]],
                     })),
-                    bookingInfo,
+                    movie,
+                    showtime: showtime
                 },
             });
         } catch (e) {
@@ -107,21 +111,26 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
 
 
     const handleGoBack = () => {
-        navigate('/details');
+        navigate(`/details/`, {
+        state: {
+        movie: movie,
+        showtime: showtime,
+        noOfTickets: noOfTickets
+      }});
     }
 
     var rated = null;
-    if(selectedBooking.movie.rating === 1) {
+    if(movie.rating === 1) {
         rated = "G"
-    } else if (selectedBooking.movie.rating === 2) {
+    } else if (movie.rating === 2) {
         rated = "PG"
-    } else if (selectedBooking.movie.rating === 3) {
+    } else if (movie.rating === 3) {
         rated = "PG-13"
     } else {
         rated = "R"
     }
 
-    const date = (selectedBooking.showtime.label).split("•")[0];
+    const date = (showtime.label).split("•")[0];
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
@@ -139,15 +148,15 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
                 <div className="flex items-start space-x-4">
                 <img 
-                    src={selectedBooking.movie.poster}
-                    alt={selectedBooking.movie.title}
+                    src={movie.poster}
+                    alt={movie.title}
                     className="w-24 h-36 object-cover rounded"
                 />
                 <div>
-                    <h2 className="text-2xl font-bold mb-2">{selectedBooking.movie.title}</h2>
-                    <p className="text-gray-600 mb-1">{rated} • {selectedBooking.movie.genre} • ⭐ {selectedBooking.movie.review_score}</p>
-                    <p className="text-lg font-semibold text-blue-600">Showtime: {selectedBooking.showtime.label}</p>
-                    <p className="text-gray-600">Duration: {selectedBooking.movie.duration} minutes</p>
+                    <h2 className="text-2xl font-bold mb-2">{movie.title}</h2>
+                    <p className="text-gray-600 mb-1">{rated} • {movie.genre} • ⭐ {movie.review_score}</p>
+                    <p className="text-lg font-semibold text-blue-600">Showtime: {showtime.label}</p>
+                    <p className="text-gray-600">Duration: {movie.duration} minutes</p>
                 </div>
                 </div>
             </div>
@@ -159,17 +168,7 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
                 </div>
                 
                 <div>
-                <h3 className="text-xl font-semibold mb-4">Number of Tickets</h3>
-                <select 
-                value={numTickets}
-                onChange={(e) => setNumTickets(Number(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="1">1 Ticket</option>
-                    <option value="2">2 Tickets</option>
-                    <option value="3">3 Tickets</option>
-                    <option value="4">4 Tickets</option>
-                    <option value="5">5+ Tickets</option>
-                </select>
+                <h3 className="text-xl font-semibold mb-4">Number of Tickets: {noOfTickets}</h3>                
                 </div>
             </div>
 
@@ -203,7 +202,7 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
                     <div className="space-y-2">
                         {selected.map((s) => (
                             <div key={s.id} className="flex items-center justify-between gap-3">
-                                <span className="font-medium">{s.row}{s.number}</span>
+                                <span className="font-medium">{s.row_number}{s.seat_number}</span>
                                 <select
                                     className="border rounded p-2"
                                     value={ticketTypes[s.id] ?? "Adult"}
@@ -226,25 +225,12 @@ export default function SeatingPage({ selectedBooking, getNumSeats, numSeats }) 
 
             <div className="space-y-2 max-w-md">
                 <div className="text-lg">Total: ${total.toFixed(2)}</div>
-                <input
-                    className="border p-2 w-full"
-                    placeholder="Full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                />
-                <input
-                    className="border p-2 w-full"
-                    placeholder="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
                 <button
                     onClick={book}
                     disabled={loading || selected.length === 0}
                     className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
                 >
-                    Book Now
+                    Checkout
                 </button>
             </div>
         </div>

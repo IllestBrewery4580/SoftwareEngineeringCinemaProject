@@ -41,6 +41,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 INSTALLED_APPS = [
     "rest_framework",
     "movie",
+    'promotions',
     'accounts',
     'booking',
     'Logout',
