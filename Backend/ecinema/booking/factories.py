@@ -1,5 +1,9 @@
+from booking.models import TicketType
+from decimal import Decimal
+from abc import ABC, abstractmethod
+
 class TicketFactory():
-    def create(ticket_type):
+    def create(self, ticket_type: TicketType):
         if ticket_type.name == 'Adult':
             return AdultTicket()
         elif ticket_type.name == 'Senior':
@@ -7,19 +11,23 @@ class TicketFactory():
         elif ticket_type.name == 'Child':
             return ChildTicket()
         else:
-            return BaseTicket()
+            return None
+        
+class BaseTicket(ABC):
+    base_price = Decimal('12.50')
 
-class BaseTicket:
-    price = 0.00
-
+    @abstractmethod
     def get_price(self):
-        return self.price
-    
+        pass
+
 class AdultTicket(BaseTicket):
-    price = 12.50
-
+    def get_price(self):
+        return self.base_price
+    
 class SeniorTicket(BaseTicket):
-    price = 10.00
-
+    def get_price(self):
+        return self.base_price * Decimal('0.8')
+    
 class ChildTicket(BaseTicket):
-    price = 8.00
+    def get_price(self):
+        return self.base_price * Decimal('0.64')
