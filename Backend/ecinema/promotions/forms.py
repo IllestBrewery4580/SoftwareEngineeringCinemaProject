@@ -6,7 +6,7 @@ class PromotionForm(forms.ModelForm):
         model = Promotion
         fields = ['promo_code', 'start_date', 'end_date', 'discount_percent', 'description']
 
-     def clean_discount_percent(self):
+    def clean_discount_percent(self):
         discount = self.cleaned_data['discount_percent']
         if discount < 0 or discount > 100:
             raise forms.ValidationError("Discount must be between 0 and 100.")
