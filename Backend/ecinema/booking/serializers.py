@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import Booking, Ticket, TicketType
 from movie.models import Seat, MovieShow
 from .factories import TicketFactory
+from .concreteFactories import ConcreteTicketFactory
+from .concreteTickets import AdultTicket, SeniorTicket, ChildTicket
+from decimal import Decimal
 
 class BookingSeatSerializer(serializers.ModelSerializer):
     seat_id = serializers.PrimaryKeyRelatedField(
@@ -37,13 +40,15 @@ class BookingSerializer(serializers.ModelSerializer):
         validated_data["total_price"] = 0.00    
         booking = Booking.objects.create(**validated_data)
         
-        total_price = 0.00
+        factory = TicketFactory()
+
+        total_price = Decimal('0.00')
         for s in seats_data:
             seat = s["seat"]
             ticket_type = TicketType.objects.get(name=s["ticket_type"])
 
-            factory = TicketFactory.create(ticket_type)
-            price = factory.get_price()
+            ticket = factory.create(ticket_type)
+            price = ticket.get_price()
 
             Ticket.objects.create(
                 booking=booking,

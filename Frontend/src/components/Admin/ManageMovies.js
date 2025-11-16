@@ -14,8 +14,8 @@ import { getCookie } from '../../utils/csrf';
     }
 
     return(<>
-        <div className= "flex-flow justify-center">
-            <div className="bg-white p-6 pb-2 rounded-lg shadow-md w-500">
+        <div className= "flex justify-center min-w-screen">
+            <div className="bg-white p-6 pb-2 rounded-lg shadow-md max-w-4xl w-full">
                 <h1 className="pb-1 text-center font-bold text-xl">Manage Movies</h1>
                 <hr></hr>
                 <ul className='flex flex-col text-xl font-semibold mb-4'>

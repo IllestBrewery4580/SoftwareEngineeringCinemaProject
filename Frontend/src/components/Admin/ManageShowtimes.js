@@ -158,8 +158,8 @@ const ManageShowtimes = () => {
     }
 
     return (<>
-        <div className= "flex-flow justify-center">
-            <div className="bg-white py-4 px-16 pb-2 rounded-lg shadow-md w-500">
+        <div className= "flex justify-center min-w-screen">
+            <div className="bg-white py-4 px-16 pb-2 rounded-lg shadow-md max-w-4xl w-full">
                 <h1 className="pb-1 text-center font-bold text-3xl">{movie.title}</h1>
                 <hr className='my-4'></hr>
                 <h1 className="pb-2 text-center text-xl font-semibold">Showtimes</h1>
