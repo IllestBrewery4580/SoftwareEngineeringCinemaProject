@@ -2,8 +2,6 @@ from rest_framework import serializers
 from .models import Booking, Ticket, TicketType
 from movie.models import Seat, MovieShow
 from .factories import TicketFactory
-from .concreteFactories import ConcreteTicketFactory
-from .concreteTickets import AdultTicket, SeniorTicket, ChildTicket
 from decimal import Decimal
 
 class BookingSeatSerializer(serializers.ModelSerializer):
