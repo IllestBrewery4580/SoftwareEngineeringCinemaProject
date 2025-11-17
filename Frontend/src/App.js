@@ -10,14 +10,9 @@ import MovieDetailsPage from './components/MovieDetailsPage';
 import NewPassword from './components/NewPassword';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import ResetPassword from './components/ResetPassword';
-import Confirmation from './components/Confirmation'
+import Confirmation from './components/Confirmation';
 import ForgotVerification from './components/ForgotVerification';
-import AdminLogin from './components/AdminLogin'
-import Manage from "./components/Manage"
-import ManageMovieDetails from "./components/ManageMovieDetails"
-import SeatSelectionPage from "./components/SeatSelectionPage";
-import SeatingPage from './components/SeatingPage';
-import Checkout from './components/Checkout';
+import { bookingFacade, authFacade } from './facade/CinemaFacade';
 
 function App() {
   // State management
@@ -28,62 +23,49 @@ function App() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
-  const[numSeats, setNumSeats] = useState(0);
-  
 
-  // Fetch from backend on mount
+  // Fetch movies via facade
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/api/movies/")
-      .then((res) => res.json())
+    bookingFacade
+      .listMovies()
       .then((data) => {
         setMovies(data);
-        console.log(data)
+        console.log(data);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error fetching movies:", err);
+        console.error("Error fetching movies via facade:", err);
         setLoading(false);
       });
   }, []);
 
-  // Handles logout function
+  // Logout via facade
   const handleLogout = async () => {
     try {
-      const res = await fetch('http://localhost:8000/accounts/logout/', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-              'Accept': 'application/json',
-          },
-      });
-
-      if (res.ok) {
-        alert('Logged out successfully.');
-        setIsLoggedIn(false); // clear frontend state
-        navigate("/"); // redirect to login page
-      } else {
-        alert('Logout failed. Please try again.');
-      }
+      await authFacade.logout();
+      alert('Logged out successfully.');
+      setIsLoggedIn(false);
+      navigate("/");
     } catch (err) {
-      console.error('Logout fetch error:', err);
+      console.error('Logout error via facade:', err);
       alert("Logout failed. Please try again.");
     }
   };
 
   // Extract genres from movies
   const genres = ['all', ...Array.from(new Set(
-    movies.flatMap(m => 
+    movies.flatMap(m =>
       m.genre ? m.genre.split(',').map(g => g.trim()) : []
     )
   ))];
+
   // Filtered movies based on search and genre
-  
   const filteredMovies = movies.filter(movie => {
     const matchesTitle = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = selectedGenre === 'all' || 
+    const matchesGenre =
+      selectedGenre === 'all' ||
       (movie.genre && movie.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
     return matchesTitle && matchesGenre;
   });
@@ -91,95 +73,109 @@ function App() {
   // Handlers
   const handleSearch = (query) => setSearchQuery(query);
   const handleFilter = (genre) => setSelectedGenre(genre);
-  
+
   const showMovieDetails = (movie) => {
     setSelectedMovie(movie);
     navigate("/details");
   };
-  
+
   const showBookingPage = (movie, showtime) => {
     setSelectedBooking({ movie, showtime });
-    navigate("/booking")
+    navigate("/booking");
   };
 
-  const showManageMovie = (movie) => {
-    setSelectedMovie(movie);
-    navigate("/manage/movie_details");
-  }
-  
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-blue-900 text-white py-4 shadow-lg">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between">
-              <Link to="/" className="text-2xl font-bold cursor-pointer hover:text-blue-200">Simply Movies</Link>
-              <nav className="flex items-center space-x-4">
-                <Link to="/" className="text-blue-200 hover:text-white transition-colors">Home</Link>
-                {isLoggedIn ? (<>
-                  {isAdmin ? (
-                    <Link to="/manage" className="text-blue-200 p-2 hover:text-white transition-colors">Manage</Link>
-                  ) : ("")}
-                  <Link to="/profile" className="text-blue-200 p-2 hover:text-white transition-colors">Profile</Link>
-                  <button onClick={handleLogout} className="text-blue-200 hover:text-white transition-colors">Logout</button>
-                </>) : (
-                  <Link to="/login" className="text-blue-200 p-2 hover:text-white transition-colors">Login</Link>
-                )}
-                </nav>
-            </div>
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="text-2xl font-bold cursor-pointer hover:text-blue-200">
+              Simply Movies
+            </Link>
+            <nav className="flex items-center space-x-4">
+              <Link to="/" className="text-blue-200 hover:text-white transition-colors">
+                Home
+              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="text-blue-200 p-2 hover:text-white transition-colors"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="text-blue-200 hover:text-white transition-colors"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-blue-200 p-2 hover:text-white transition-colors"
+                >
+                  Login
+                </Link>
+              )}
+            </nav>
           </div>
-        </header>
-    
+        </div>
+      </header>
+
       <main className="container mx-auto px-4 py-8">
         <Routes>
-          <Route path="/" element={<HomePage 
-            searchQuery={searchQuery}
-            handleSearch={handleSearch}
-            selectedGenre={selectedGenre}
-            handleFilter={handleFilter}
-            genres={genres}
-            filteredMovies={filteredMovies}
-            loading={loading}
-            showMovieDetails={showMovieDetails}
-            showBookingPage={showBookingPage}
-          />}></Route>
-          <Route path="/details" element={<MovieDetailsPage 
-            selectedMovie={selectedMovie}
-            showBookingPage={showBookingPage}
-          />}></Route>
-          <Route path="/booking" element={<BookingPage 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-          />}></Route>
-          <Route path="/login" element={<div className='justify-items-center'><LoginPage onLoginSuccess={() => setIsLoggedIn(true)}/></div>}></Route>
-          <Route path="/adminlogin" element={<div className='justify-items-center'><AdminLogin 
-            onAdminSuccess={() => {
-              setIsLoggedIn(true);
-              setIsAdmin(true)}}/></div>}></Route>
-          <Route path="/profile" element={<Profile />}></Route>
-          <Route path="/manage" element={<Manage 
-            movies={movies}
-            showManageMovie={showManageMovie}
-            setSelectedMovie={setSelectedMovie}/>}></Route>
-          <Route path="/manage/movie_details" element={<ManageMovieDetails
-            selectedMovie={selectedMovie}/>}></Route>
-          <Route path="/create" element={<CreateAccountPage />}></Route>
-          <Route path="/profile/newpassword" element={<NewPassword />}></Route>
-          <Route path="/login/forgotpassword" element={<ForgotPasswordPage />}></Route>
-          <Route path="/login/forgotpassword/verify" element={<ForgotVerification />}></Route>
-          <Route path="/login/forgotpassword/resetpassword" element={<ResetPassword />}></Route>
-          <Route path="/create/verification" element={<Confirmation />}></Route>
-          <Route path="/booking/seatselection" element={<SeatingPage 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-            />}></Route>
-            <Route path="/booking/checkout" element={<Checkout 
-            selectedBooking={selectedBooking} getNumSeats={setNumSeats} numSeats={numSeats}
-            />}></Route>
-
+          <Route
+            path="/"
+            element={
+              <HomePage
+                searchQuery={searchQuery}
+                handleSearch={handleSearch}
+                selectedGenre={selectedGenre}
+                handleFilter={handleFilter}
+                genres={genres}
+                filteredMovies={filteredMovies}
+                loading={loading}
+                showMovieDetails={showMovieDetails}
+                showBookingPage={showBookingPage}
+              />
+            }
+          />
+          <Route
+            path="/details"
+            element={
+              <MovieDetailsPage
+                selectedMovie={selectedMovie}
+                showBookingPage={showBookingPage}
+              />
+            }
+          />
+          <Route
+            path="/booking"
+            element={<BookingPage selectedBooking={selectedBooking} />}
+          />
+          <Route
+            path="/login"
+            element={
+              <div className="justify-items-center">
+                <LoginPage onLoginSuccess={() => setIsLoggedIn(true)} />
+              </div>
+            }
+          />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/create" element={<CreateAccountPage />} />
+          <Route path="/profile/newpassword" element={<NewPassword />} />
+          <Route path="/login/forgotpassword" element={<ForgotPasswordPage />} />
+          <Route path="/login/forgotpassword/verify" element={<ForgotVerification />} />
+          <Route path="/login/forgotpassword/resetpassword" element={<ResetPassword />} />
+          <Route path="/create/verification" element={<Confirmation />} />
         </Routes>
       </main>
 
       <footer className="absolute-bottom w-full bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Team 13 - Sprint 1 CES</p>
+          <p>&copy; 2025 Team 13 - Sprint 2 CES</p>
         </div>
       </footer>
     </div>
