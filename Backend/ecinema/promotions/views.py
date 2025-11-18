@@ -3,16 +3,18 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import JsonResponse
+import json
 
 from .forms import PromotionForm
 from .models import Promotion
 from accounts.models import CustomUser
 
-
 @staff_member_required
 def create_promotion(request):
     if request.method == "POST":
-        form = PromotionForm(request.POST)
+        data = json.loads(request.body)
+        form = PromotionForm(data)
         if form.is_valid():
             promo = form.save()
             messages.success(request, "Promotion created successfully!")
@@ -24,12 +26,19 @@ def create_promotion(request):
 
     return render(request, "promotions/create_promotion.html", {"form": form})
 
-
-@staff_member_required
 def promotion_list(request):
     promotions = Promotion.objects.all().order_by("-start_date")
-    return render(request, "promotions/promotion_list.html", {"promotions": promotions})
+    promo_list = list(promotions.values())
+    return JsonResponse({'status': 'success', 'promotions': promo_list})
 
+def validate_promo(request, promo_code):
+    promotions = Promotion.objects.all().order_by("-start_date")
+    if promo_code:
+        promotions = promotions.filter(promo_code=promo_code)
+        if promotions.exists():
+            return JsonResponse({'status': 'success', 'promotions': list(promotions.values())})
+        return JsonResponse({'status': 'error', 'promotions': [], 'message': 'Invalid promotion code.'})
+    return JsonResponse({'status': 'error', 'message': 'Promotion code not provided.'})
 
 @staff_member_required
 def email_promotion(request, promo_id):

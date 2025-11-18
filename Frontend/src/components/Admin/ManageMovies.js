@@ -21,7 +21,7 @@ import { getCookie } from '../../utils/csrf';
                 <ul className='flex flex-col text-xl font-semibold mb-4'>
                     {movies.map((movie, index) => (
 
-                        <li key={index} onClick={() => navigate(`/manage/movie_details/${movie.id}`)} className="font-semibold text-lg mb-2 cursor-pointer hover:text-blue-600">
+                        <li key={index} onClick={() => navigate(`/manage/movie_details/${movie.id}`, {state: {movieId:movie.id}})} className="font-semibold text-lg mb-2 cursor-pointer hover:text-blue-600">
                             {index+1} | {movie.title}
                         </li>
                     ))}

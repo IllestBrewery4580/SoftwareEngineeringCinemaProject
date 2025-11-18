@@ -23,29 +23,23 @@ import AddMovie from './components/Admin/AddMovie';
 import SeatingPage from './components/Checkout/SeatingPage';
 import PrivateRoutes from './components/App/PrivateRoute';
 import Checkout from './components/Checkout/Checkout';
-
+import { bookingFacade, authFacade } from './facade/cinemaFacade';
 
 function App() {
   // State management
   const [movies, setMovies] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('all');
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
-  const[numSeats, setNumSeats] = useState(0);
 
   // Fetch from backend on mount
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/api/movies/", {
-      method: 'GET',
-      credentials:'include',
-    })
-      .then((res) => res.json())
+    bookingFacade
+      .listMovies()
       .then((data) => {
         setMovies(data);
         setLoading(false);
@@ -55,8 +49,6 @@ function App() {
         setLoading(false);
       });
   }, []);
-
-  console.log(movies)
 
   // Checks if logged in
   useEffect(() => {
@@ -89,21 +81,10 @@ function App() {
   // Handles logout function
   const handleLogout = async () => {
     try {
-      const res = await fetch('http://localhost:8000/accounts/logout/', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-              'Accept': 'application/json',
-          },
-      });
-
-      if (res.ok) {
-        alert('Logged out successfully.');
-        setIsLoggedIn(false); // clear frontend state
-        navigate("/"); // redirect to login page
-      } else {
-        alert('Logout failed. Please try again.');
-      }
+      await authFacade.logout();
+      alert('Logged out successfully.');
+      setIsLoggedIn(false);
+      navigate("/");
     } catch (err) {
       console.error('Logout fetch error:', err);
       alert("Logout failed. Please try again.");
@@ -145,11 +126,6 @@ function App() {
       }
     })
   };
-
-  const showManageMovie = (movie) => {
-    setSelectedMovie(movie);
-    navigate("/managemovies/movie_details");
-  }
   
   return (
     <div className="min-h-screen bg-gray-100">
@@ -179,9 +155,7 @@ function App() {
             <Route path="/profile" element={<Profile />}></Route>
             <Route path="/manage" element={<Manage/>}></Route>
             <Route path="/managemovies" element={<ManageMovies 
-              movies={movies}
-              showManageMovie={showManageMovie}
-              setSelectedMovie={setSelectedMovie}/>}></Route>
+              movies={movies}/>}></Route>
             <Route path="/manageusers" element={<ManageUsers/>}></Route>
             <Route path="/managepromo" element={<ManagePromotions/>}></Route>
             <Route path='/manage/movie_details/:movieId' element={<ManageMovieDetails/>}></Route>

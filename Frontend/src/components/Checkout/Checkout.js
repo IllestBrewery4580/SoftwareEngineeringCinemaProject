@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import PromoCodeBox from "./PromoCodeBox";
 
 const Checkout = () => {
+    const navigate = useNavigate();
     const location = useLocation();
     const {showId, total, seats, movie, showtime} = location.state || {};
-    const navigate = useNavigate();
-    
+    const [applied, setApplied] = useState(false);
+    var [newTotal, setNewTotal] = useState(total);
+
     const handleSeating = () => {
         navigate('/booking/seatselection', {
             state: {
@@ -17,11 +20,12 @@ const Checkout = () => {
         });
     }
 
-    const [promoCode, setPromoCode] = useState("");
-    const handlePromoCode = (promoCode) => setPromoCode(promoCode);
+    const handlePromoCode = (discount) => {
+        var discountAmount = (discount / 100) * total;
+        setNewTotal(total - discountAmount);
+        setApplied(true);
+    }
 
-
-    console.log("checkout", showtime)
     {/*Rating*/}
     var rated = null;
     if(movie.rating == 1) {
@@ -73,23 +77,22 @@ const Checkout = () => {
             <h1>{
                 seats.map((seat, index) => (
                     <span key={index} className="mr-2">
+                        <div>
                         {seat.label} &nbsp;&nbsp;-&nbsp;&nbsp; {seat.type} &nbsp;&nbsp;-&nbsp;&nbsp; ${seat.price}
+                        </div>
                     </span>
                 ))  
             }</h1>
              
-            <div className="justify-items-end flex-col p-3">
+            <div className="justify-items-end flex-col">
                 <div className="flex">
-                    <input
-                        type="text"
-                        placeholder="Promo Code"
-                        value={promoCode}
-                        onChange={(e) => handlePromoCode(e.target.value)}
-                        className="pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button className="bg-blue-500 p-3 m-2 ml-5 rounded-xl transition-colors hover:text-white">Enter Code</button>
+                    <PromoCodeBox onAction={handlePromoCode}/>
                 </div>
-                <h2 className="text-2xl font-bold mt-4">Price Total: ${total}</h2> 
+                {applied ? (
+                    <h2 className="text-2xl font-bold mt-4">New Price Total: ${newTotal}</h2>
+                ) : (
+                    <h2 className="text-2xl font-bold mt-4">Price Total: ${total}</h2>
+                )} 
             </div>
 
 

@@ -17,7 +17,6 @@ export default function SeatingPage() {
 
     const PRICE = { Adult: 12.5, Senior: 10.0, Child: 8.0 };
 
-    console.log("seating:" ,showtime)
     useEffect(() => {
         (async () => {
             setLoading(true);
@@ -73,7 +72,6 @@ export default function SeatingPage() {
             0
         );
 
-        console.log(snapshotSelected)
         setLoading(true);
         try {
             await createBooking({

@@ -35,8 +35,8 @@ import { getCookie } from '../../utils/csrf';
     }
 
     return(<>
-        <div className= "flex flex-col justify-center">
-            <div className="bg-white p-6 pb-2 rounded-lg shadow-md">
+        <div className= "flex justify-center min-w-screen">
+            <div className="bg-white p-6 pb-2 rounded-lg shadow-md max-w-4xl w-full">
                 <h1 className="pb-3 text-center font-bold text-xl">Manage Users</h1>
                 <hr className='pb-6'></hr>
                 {users.map((user, index) => (

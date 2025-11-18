@@ -5,13 +5,13 @@ from django.contrib.auth import get_user_model
 def send_promotion_email(promotion):
     User = get_user_model()
     subscribed_users = list(
-        User.objects.filter(is_subscribed=True).values_list("email", flat=True)
+        User.objects.filter(enroll_for_promotions=True).values_list("email", flat=True)
     )
 
     if not subscribed_users:
         return
     
-    send_email = "simplymovies4050@gmail.com"
+    sender_email = "simplymovies4050@gmail.com"
     
     # EXACT TEMPLATE:
     #
@@ -23,14 +23,13 @@ def send_promotion_email(promotion):
     # Enjoy 30.00% OFF!
     #
     # Valid from 2025-11-25 to 2025-12-25
-    subject = f"New Promotion: {promotion.code}"
+    subject = f"New Promotion: {promotion.promo_code}"
 
     # Format EXACTLY like the required template
     message = (
-        f"New Promotion: {promotion.code}\n\n"
-        f"{sender_email}\n"
-        f"to {', '.join(subscribed_users)}\n\n"
+        f"New Promotion: {promotion.promo_code}\n\n"
         f"Enjoy {float(promotion.discount_percent)}% OFF!\n\n"
+        f"Use the code {promotion.promo_code} at checkout.\n\n"
         f"Valid from {promotion.start_date} to {promotion.end_date}"
     )
 

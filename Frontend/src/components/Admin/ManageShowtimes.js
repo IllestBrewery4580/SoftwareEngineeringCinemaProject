@@ -10,8 +10,8 @@ const ManageShowtimes = () => {
 
     const navigate = useNavigate()
     const location = useLocation()
-
-    const movieId = location.pathname.substring(22, 23)
+    const { movieId } = location.state || {};
+    
     useEffect(() => {
         setLoading(true)
         fetch(`http://localhost:8000/api/movies/${movieId}/`)
@@ -38,7 +38,7 @@ const ManageShowtimes = () => {
     }
 
     const handleGoBack = () => {
-        navigate(`/manage/movie_details/${movieId}`)
+        navigate(`/manage/movie_details/${movieId}`, {state: {movieId: movieId}})
     }
 
     const formatForInput = (isoString) => {

@@ -27,10 +27,11 @@ const ManageMovieDetails = () => {
     const handlePosterChange = (file) => setPoster(file);
     const handleRatingChange = (rating) => setRating(rating);
     const handleReviewChange = (review) => setReview(review);
+    
     const navigate = useNavigate()
     const location = useLocation()
+    const {movieId} = location.state || {};
 
-    const movieId = location.pathname.substring(22)
     useEffect(() => {
         setLoading(true)
         fetch(`http://localhost:8000/api/movies/${movieId}/`)
@@ -63,7 +64,9 @@ const ManageMovieDetails = () => {
         navigate("/managemovies")
     }
     const handleShowtimes = () => {
-        navigate(`/manage/movie_details/${movieId}/showtimes`)
+        navigate(`/manage/movie_details/${movieId}/showtimes`, {
+            state: {movieId: movieId}
+        })
     }
 
     const handleDelete = async () => {

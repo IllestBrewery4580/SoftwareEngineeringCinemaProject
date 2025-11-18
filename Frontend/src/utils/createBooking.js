@@ -2,7 +2,6 @@ import { getCookie } from './csrf';
 import { useEffect } from 'react';
 
 export async function createBooking(payload) {
-    console.log("Cookie", getCookie('csrftoken'))
     var data = [];
           try {
             const response = await fetch("http://localhost:8000/bookings/getUser/", {
@@ -33,7 +32,7 @@ export async function createBooking(payload) {
             ...payload
         }),
     });
-    console.log(r)
+
     if (!r.ok) throw new Error("Error. Could not create booking.");
     return r.json();
 }
