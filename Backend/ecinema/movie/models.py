@@ -32,9 +32,12 @@ class Auditorium(models.Model):
 
 
 class Seat(models.Model):
-    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
+    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE, related_name="seats")
     row_number = models.CharField(max_length=5)
-    seat_number = models.IntegerField()
+    seat_number = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ("auditorium", "row_number", "seat_number")
 
     def __str__(self):
         return f"{self.auditorium.name} - {self.row_number}{self.seat_number}"
@@ -42,7 +45,7 @@ class Seat(models.Model):
 
 class MovieShow(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
+    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE, related_name="shows")
     show_start_time = models.DateTimeField()
     no_of_available_seats = models.PositiveIntegerField()
 
