@@ -15,20 +15,27 @@ const Checkout = () => {
                 showId,
                 seats: seats,
                 movie: movie,
-                showtime: showtime
+                showtime: showtime,
+                returnSeats: seats
             }
         });
     }
 
     const handlePromoCode = (discount) => {
-        var discountAmount = (discount / 100) * total;
-        setNewTotal(total - discountAmount);
-        setApplied(true);
+        if (discount !== 0) {
+            var discountAmount = (discount / 100) * total;
+            setNewTotal(total - discountAmount);
+            setApplied(true);
+        } else {
+            setNewTotal(total);
+            setApplied(false);
+        }
     }
 
     {/*Rating*/}
     var rated = null;
-    if(movie.rating == 1) {
+
+    if (movie.rating == 1) {
         rated = "G"
     } else if (movie.rating == 2) {
         rated = "PG"
@@ -70,28 +77,27 @@ const Checkout = () => {
             </div>
             </div>
         </div>
-
             <div className="bg-gray-50 rounded-lg p-6 mb-6 flex-row">
-             <h2 className="text-2xl font-bold mb-2">Tickets selected: {seats.length}</h2> 
-             <h1 className="text-xl font-semibold mb-2">Seats:</h1>
-            <h1>{
-                seats.map((seat, index) => (
-                    <span key={index} className="mr-2">
-                        <div>
-                        {seat.label} &nbsp;&nbsp;-&nbsp;&nbsp; {seat.type} &nbsp;&nbsp;-&nbsp;&nbsp; ${seat.price}
-                        </div>
-                    </span>
-                ))  
-            }</h1>
+            <h2 className="text-2xl font-bold mb-2">Tickets selected: {seats.length}</h2> 
+            <h1 className="text-xl font-semibold mb-2">Seats:</h1>
+            <div className="bg-gray-200 py-2 px-4 rounded-lg mb-4">
+                {seats.map((seat, index) => (
+                    <div key={index} className="flex items-center justify-between gap-3">
+                        <span className="font-medium">{seat.row_number}{seat.seat_number}</span>
+                        <span className="text-sm text-gray-600 font-medium">Type: {seat.type}</span>
+                        <span className="text-sm text-gray-600 font-medium">${seat.price}</span>
+                    </div>
+                ))}
+            </div>
              
             <div className="justify-items-end flex-col">
                 <div className="flex">
                     <PromoCodeBox onAction={handlePromoCode}/>
                 </div>
                 {applied ? (
-                    <h2 className="text-2xl font-bold mt-4">New Price Total: ${newTotal}</h2>
+                    <h2 className="text-2xl font-bold mt-4">New Price Total: ${newTotal.toFixed(2)}</h2>
                 ) : (
-                    <h2 className="text-2xl font-bold mt-4">Price Total: ${total}</h2>
+                    <h2 className="text-2xl font-bold mt-4">Price Total: ${total.toFixed(2)}</h2>
                 )} 
             </div>
 

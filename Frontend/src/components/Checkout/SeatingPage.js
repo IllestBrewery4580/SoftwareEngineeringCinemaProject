@@ -7,7 +7,7 @@ import { createBooking } from "../../utils/createBooking";
 export default function SeatingPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { noOfTickets, movie, showtime } = location.state || {};
+    const { noOfTickets, movie, showtime, returnSeats } = location.state || {};
     const showId = showtime.id;     // fallback to 1 if not passed
 
     const [seats, setSeats] = useState([]);
@@ -23,6 +23,17 @@ export default function SeatingPage() {
             try {
                 const data = await fetchSeats(showId);
                 setSeats(data);
+
+                if (returnSeats) {
+                    setSelected(returnSeats);
+
+                    const types = {};
+                    returnSeats.forEach((s) => {
+                        types[s.id] = s.type;
+                        s.is_reserved = true;
+                    });
+                    setTicketTypes(types);
+                }
             } catch (e) {
                 alert("Failed to load seats");
             } finally {
@@ -74,6 +85,7 @@ export default function SeatingPage() {
 
         setLoading(true);
         try {
+            /* Save this for when the user actually pays
             await createBooking({
                 show: showId,
                 no_of_tickets: snapshotSelected.length,
@@ -85,6 +97,7 @@ export default function SeatingPage() {
             // refresh and proceed (or send to checkout)
             setSelected([]);
             setTicketTypes({});
+            */
             setSeats(await fetchSeats(showId));
             // example: go to checkout with summary
             navigate("/booking/checkout", {
@@ -92,7 +105,7 @@ export default function SeatingPage() {
                     showId,
                     total: totalNow,
                     seats: snapshotSelected.map((s) => ({
-                        label: `${s.row_number}${s.seat_number}`,
+                        ...s,
                         type: snapshotTypes[s.id],
                         price: PRICE[snapshotTypes[s.id]],
                     })),

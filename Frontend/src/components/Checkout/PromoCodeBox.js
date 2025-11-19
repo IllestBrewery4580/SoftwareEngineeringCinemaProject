@@ -18,6 +18,8 @@ export default function PromoCodeBox( {onAction} ) {
 
     if (result.status === "success") {
         onAction(result.promotions[0].discount_percent);
+    } else {
+        onAction(0);
     }
 
     return (
