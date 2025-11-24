@@ -1,11 +1,30 @@
 from rest_framework import serializers
 from .models import Movie, MovieShow, Seat
 from booking.models import Ticket
+from django.utils.timezone import localtime
 
 class MovieShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = MovieShow
         fields = ['id', 'show_start_time', 'auditorium', 'no_of_available_seats', 'movie']
+
+    def validate(self, data):
+        auditorium = data.get("auditorium")
+        show_start_time = data.get("show_start_time")
+
+        movie = MovieShow.objects.filter(
+            auditorium=auditorium,
+            show_start_time=show_start_time,
+        )
+
+        if self.instance:
+            movie = movie.exclude(id=self.instance.id)
+
+        if movie.exists():
+            raise serializers.ValidationError(
+                {"detail": "A showtime for this movie, auditorium, and datetime already exists."}
+            )
+        return data
 
 class MovieSerializer(serializers.ModelSerializer):
     showtimes = serializers.SerializerMethodField()
@@ -19,7 +38,7 @@ class MovieSerializer(serializers.ModelSerializer):
         shows = MovieShow.objects.filter(movie=obj).order_by('show_start_time')
         formatted = []
         for show in shows:
-            local_time = show.show_start_time
+            local_time = localtime(show.show_start_time)
             formatted_time = local_time.strftime("%a, %b %d • %I:%M %p")
             formatted.append({
                 'id': show.id,

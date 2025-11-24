@@ -25,7 +25,7 @@ const ManageShowtimes = () => {
         if (movie) {
             const showtimeAll = (movie.showtimes_raw || []).map(show => ({
                 id: show.id,
-                show_start_time: show.show_start_time ,
+                show_start_time: show.show_start_time.replace('Z', ''),
                 auditorium: show.auditorium,
                 no_of_available_seats: show.no_of_available_seats,
             }));
@@ -49,7 +49,7 @@ const ManageShowtimes = () => {
         const yyyy = date.getFullYear();
         const MM = pad(date.getMonth() + 1);
         const dd = pad(date.getDate());
-        const hh = pad(date.getHours() + 5);
+        const hh = pad(date.getHours());
         const mm = pad(date.getMinutes());
 
         return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
@@ -61,7 +61,6 @@ const ManageShowtimes = () => {
         dateObj: new Date(s.show_start_time)
     }))
     .sort((a, b) => a.dateObj - b.dateObj);
-
 
     const handleShowtimeChange = (index, field, value) => {
         setShowtimes(prev =>
@@ -85,7 +84,7 @@ const ManageShowtimes = () => {
         if (movie.showtimes[index] == null) {
             setShowtimes(prev => prev.filter((_, i) => i !== index));
         } else {
-            const confirmDelete = window.confirm(`Are you sure you want to delete showtime "${movie.showtimes[index]}"?`);
+            const confirmDelete = window.confirm(`Are you sure you want to delete this showtime?`);
             if (!confirmDelete) return;
 
             try {
@@ -122,8 +121,8 @@ const ManageShowtimes = () => {
                 },
                 body: JSON.stringify({
                     showtimes: showtimes.map(show => ({
-                        id: (show.id ? show.id : {}),
-                        show_start_time: new Date(show.show_start_time).toISOString(),
+                        id: (show.id ? show.id : null),
+                        show_start_time: show.show_start_time,
                         auditorium: show.auditorium,
                         no_of_available_seats: show.no_of_available_seats,
                         movie_id: show.movie_id
