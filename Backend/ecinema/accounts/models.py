@@ -50,6 +50,7 @@ class Account(models.Model):
     def set_card_no(self, card_no):
             encrypted_bytes = fernet.encrypt(card_no.encode())
             self.card_no_encrypted = base64.urlsafe_b64encode(encrypted_bytes).decode()
+            self.save(update_fields=['card_no_encrypted'])
 
     # def get_card_no(self):
     #     # encrypted_bytes = bytes(self.card_no_encrypted)
@@ -61,11 +62,12 @@ class Account(models.Model):
     #     return fernet.decrypt(encrypted_bytes).decode()
     
     def get_last4(self):
-        return self.get_card_no()[-4:]
+        return "••••••••••••" + self.get_card_no()[-4:]
 
     def set_cvv(self, cvv):
         encrypted_bytes = fernet.encrypt(cvv.encode())
         self.cvv_encrypted = base64.urlsafe_b64encode(encrypted_bytes).decode()
+        self.save(update_fields=['cvv_encrypted'])
         # self.cvv_encrypted = fernet.encrypt(cvv.encode())
         # self.cvv_encrypted = cvv
 

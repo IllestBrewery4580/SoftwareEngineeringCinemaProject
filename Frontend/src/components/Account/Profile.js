@@ -5,24 +5,18 @@ import { getCookie } from '../../utils/csrf';
 import Payments from './Payments'
 
  const Profile = () => {
-    const [profile, setProfile] = useState({ addresses: [], payment_info: [] });
     const [fname, setFname] = useState('');
     const [lname, setLname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [homeAddress, setHomeAddress] = useState({
-        address_line: '',
-        city: '',
-        state: '',
-        zipcode: '',
-    });
     const [promotion, setPromotion] = useState(false);
     const [methods, setMethods] = useState([]);
+    const [homeAddress, setHomeAddress] = useState([]);
+    const [save, setSave] = useState(false);
 
     const handleFname = (fname) => setFname(fname);
     const handleLname = (lname) => setLname(lname);
     const handlePhone = (phone) => setPhone(phone);
-
     const handlePromotion = () => {
         setPromotion(!promotion);
     }
@@ -36,64 +30,9 @@ import Payments from './Payments'
         navigate('/profile/newpassword');
     }
 
-    const addNewMethod = () => {
-        setMethods(prev => [
-            ...prev,
-            {
-            id: prev.length + 1,
-            cardNum: '',
-            cardType: '',
-            cardExp: '',
-            address_line: '',
-            city: '',
-            state: '',
-            zipcode: '',
-            country: ''
-            }
-        ]);
-    };
-
-    const removeMethod = async(id) => {
-        try {
-            await getCSRFToken();
-            const csrftoken = getCookie("csrftoken");
-
-            const response = await fetch(`http://localhost:8000/accounts/payment/${id}/`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRFToken": csrftoken,
-                },
-                credentials: 'include',
-            });
-
-            if (!response.ok) throw new Error("Failed to delete payment method");
-
-            // Remove from local state
-            setMethods(prev => prev.filter(method => method.id !== id));
-
-        } catch (err) {
-            console.error(err);
-            alert("Could not delete payment method");
-        }
-    
-    };
-
-    const handleMethodChange = (id, field, value) => {
-        setMethods(prev =>
-            prev.map(m => (m.id === id ? { ...m, [field]: value } : m))
-        );
-    };
-
     const handleAddressChange = (field, value) => {
         setHomeAddress(prev => ({...prev, [field]: value}));
     }
-
-    useEffect(() => {
-        fetch("http://localhost:8000/api/profile/", { credentials: "include" })
-            .then(res => res.json())
-            .then(data => setProfile(data))
-            .catch(err => console.error(err));
-    }, []);
 
     useEffect(() => {
         fetch('http://localhost:8000/accounts/profile/', {
@@ -103,70 +42,35 @@ import Payments from './Payments'
         .then((res) => {
             if (!res.ok) {
                 navigate('/login')
-            throw new Error("Not authenticated or failed to fetch profile");
-        }
-        return res.json();
+                throw new Error("Not authenticated or failed to fetch profile");
+            }
+            return res.json();
         })
         .then((data) => {
-            console.log("Data: ", data);
             setFname(data.first_name);
             setLname(data.last_name);
             setEmail(data.email);
             setPhone(data.phone);
             setPromotion(data.enroll_for_promotions);
-            
-            const mappedMethods = data.account_data.map((acc, idx) => ({
-                id: acc.id,
-                cardType: acc.card_type,
-                cardNum: acc.get_last4(),
-                cardExp: acc.expiration_date,
-                cardCVV: acc.get_cvv(),
-                address_line: acc.address_line || '',
-                city: acc.city || '',
-                state: acc.state || '',
-                zipcode: acc.zipcode || '',
-                country: acc.country || 'USA'
-            }));
-            setMethods(mappedMethods);
-            
-            setHomeAddress({
-                address_line: data.home_address?.address_line || '',
-                city: data.home_address?.city || '',
-                state: data.home_address?.state || '',
-                zipcode: data.home_address?.zipcode || '',
-            })
+            setMethods(data.account_data);
+            setHomeAddress(data.home_address)
         })
         .catch((err) => {
             console.error("Error fetching profile:", err);
         });
     }, []);
 
-    const getCSRFToken = async () => {
-    await fetch("http://localhost:8000/accounts/csrf/", {
-      method: "GET",
-      credentials: "include",
-    });
-  };
 
     const handleSubmit = async() => {
         if (fname === '' || phone === '') {
             alert("Please enter all required fields indicated with an astrerisk (*).");
         } else {
             try {
-                await getCSRFToken();
-                const csrftoken = getCookie("csrftoken");
-
-                const validMethods = methods.filter(method =>
-            Object.values(method).some(
-                value => value !== '' && value !== null && value !== undefined
-            )
-        );
-
                 const response = await fetch("http://localhost:8000/accounts/updateprofile/", {
                     method: "POST",
                     headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrftoken,
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
                     },
                     body: JSON.stringify({
                         fname: fname,
@@ -178,9 +82,12 @@ import Payments from './Payments'
                     }),
                     credentials:'include',
                 });
+
                 const data = await response.json()
                 if(response.ok) {
                     alert("Your profile has been updated!");
+                    setSave(true);
+                    <Payments paymentInfo={methods} save={save}/>
                 } else {
                     alert(data.message)
                 }
@@ -235,7 +142,7 @@ import Payments from './Payments'
                 </div>
                 <h1 className="pb-2 text-center text-lg">Payment Information</h1>
                 <hr className="pb-6 "></hr>
-                <Payments paymentInfo={profile.payment_info}/>
+                <Payments paymentInfo={methods} save={save}/>
                 <hr className='mt-4 mb-1'></hr>
                 <h1 className="text-center text-lg pt-2">Address</h1>
                 <div className="flex flex-col items-center justify-center md:flex-row gap-4 mb-6">

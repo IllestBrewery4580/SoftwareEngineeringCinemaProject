@@ -22,8 +22,7 @@ urlpatterns = [
     path('profile/', views.get_profile, name='get_profile'),
     path('updateprofile/', views.update_profile, name='update_profile'),
 
-    # Address & Payment
-    path('add_address/', views.add_address, name='add_address'),
+    # Payment
     path('add_payment/', views.add_payment, name='add_payment'),
     path('payment/<str:id>/', views.delete_payment, name='delete_payment')
 ]

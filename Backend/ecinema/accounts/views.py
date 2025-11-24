@@ -189,10 +189,11 @@ def get_profile(request):
             addr = None
 
         accounts.append({
-            "card_no": acc.get_card_no(),
+            "id": acc.id,
+            "card_no": acc.get_last4(),
             "card_type": acc.card_type,
             "expiration_date": acc.expiration_date.strftime("%m/%Y"),
-            "card_cvv": acc.get_cvv(),
+            "card_cvv": '•••',
             "address_line": addr.address_line if addr else "",
             "city": addr.city if addr else "",
             "state": addr.state if addr else "",
@@ -223,58 +224,27 @@ def update_profile(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         user = request.user
-        fname = data.get('fname')
-        lname = data.get('lname')
-        phone = data.get('phone')
-        enroll_for_promotions = data.get('enroll_for_promotions')
-        home_address = data.get('homeAddress', [])
+        user.first_name = data.get('fname')
+        user.last_name = data.get('lname')
+        user.phone = data.get('phone')
+        user.enroll_for_promotions = data.get('enroll_for_promotions')
+        user.home_address = data.get('homeAddress', [])
         payment_data = data.get('payment', [])
+        user.save()
 
-        for pay in payment_data:
-            # Create or update the Account entry
-            acc, created = Account.objects.get_or_create(
-                user=user,
-                card_type=pay['cardType'],
-            )
-
-            # Use the model’s encryption methods
-            acc.set_card_no(pay['cardNum'])
-            acc.set_cvv(pay['cardCVV'])
-            acc.expiration_date = datetime.strptime(pay['cardExp'], "%m/%Y").date()
-            acc.save()
-
-            # Update or create billing address
-            BillingAddress.objects.update_or_create(
-                card=acc,
-                defaults={
-                    'user': acc.user,
-                    'address_line': pay.get('address_line', ''),
-                    'city': pay.get('city', ''),
-                    'state': pay.get('state', ''),
-                    'zipcode': pay.get('zipcode', ''),
-                    'country': pay.get('country', 'USA'),
-                }
-            )
-
-        if home_address:
+        if user.home_address:
             HomeAddress.objects.update_or_create(
                 user=user,
                 defaults={
-                        'address_line': home_address.get('address_line', ''),
-                        'city': home_address.get('city', ''),
-                        'state': home_address.get('state', ''),
-                        'zipcode': home_address.get('zipcode', ''),
-                        'country': home_address.get('country', 'USA')
+                        'address_line': user.home_address.get('address_line', ''),
+                        'city': user.home_address.get('city', ''),
+                        'state': user.home_address.get('state', ''),
+                        'zipcode': user.home_address.get('zipcode', ''),
+                        'country': user.home_address.get('country', 'USA')
                     }
             )
 
-        user.first_name = fname
-        user.last_name = lname
-        user.phone = phone
-        user.enroll_for_promotions = enroll_for_promotions
-        user.accounts_data = payment_data
-        user.home_address = home_address
-        user.save()
+        save_payment(user, payment_data)
 
         try:
             send_mail(
@@ -411,65 +381,59 @@ def getCSRFToken(request):
 
 @csrf_exempt
 @login_required
-def add_address(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        address = BillingAddress.objects.create(
-            user=request.user,
-            address_line=data.get('address_line', ''),
-            city=data.get('city'),
-            state=data.get('state'),
-            zipcode=data.get('zipcode', ''),
-            country=data.get('country')
-        )
-        return JsonResponse({'message': 'Address added successfully', 'address_id': address.id})
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-@csrf_exempt
-@login_required
 def add_payment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data)
         methods = data.get('methods', [])
 
-        # Create Account Entry
+        save_payment(request.user, methods)
+        return JsonResponse({'status': 'success', 'message': 'Payment methods saved successfully!'}, status=200)
+    return JsonResponse({'status': 'error', 'message': 'Only POST requests are allowed.'}, status=405)
+
+def save_payment(user, methods):
+    # Create Account Entry
         for method in methods:
             try:
-                account = Account.objects.create(
-                    user=request.user,
-                    card_type=method.get('cardType'),
-                    expiration_date=datetime.strptime(method.get('cardExp'), "%m/%Y").date(),
-                )
-                address = BillingAddress.objects.create(
-                    user=request.user,
-                    address_line=method.get('address_line', ''),
-                    city=method.get('city'),
-                    state=method.get('state'),
-                    zipcode=method.get('zipcode', ''),
-                    country=method.get('country', 'USA')
-                )
-                
-                account.set_card_no(method.get('cardNum')) # use model encryption method
-                account.set_cvv(method.get('cardCVV')) # encrypt cvv
+                acc_id = method.get('id')
+
+                if acc_id:
+                    account = Account.objects.get(id=acc_id, user=user)
+                else:
+                    account = Account.objects.create(
+                        user=user,
+                        card_type=method.get('card_type'),
+                        expiration_date=datetime.strptime(method.get('expiration_date'), "%m/%Y").date(),
+                    )
+
+                if not method.get('card_no').startswith("••••"):
+                    account.set_card_no(method.get('card_no')) # use model encryption method
+                if not method.get('card_cvv').startswith("•••"):
+                    account.set_cvv(method.get('card_cvv')) # encrypt cvv
+                account.card_type=method.get('card_type')
+                account.expiration_date=datetime.strptime(method.get('expiration_date'), "%m/%Y").date()
                 account.save()
 
-                # Link BillingAddress
-                address.card = account
-                address.save()
+                BillingAddress.objects.update_or_create(
+                    user=user,
+                    card=account,
+                    defaults={
+                        'address_line':method.get('address_line', ''),
+                        'city':method.get('city'),
+                        'state':method.get('state'),
+                        'zipcode':method.get('zipcode', ''),
+                        'country':method.get('country', 'USA'),
+                    }
+                )
             except Exception as e:
                 # Rollback account if address creatoion fails
                 if 'account' in locals():
                     account.delete()
                 return JsonResponse({'error': str(e)}, status=400)
     
-        return JsonResponse({'status': 'success', 'message': 'Payment info added successfully'})
-
 @login_required
 @require_http_methods(["DELETE"])
 def delete_payment(request, id):
-    account = get_object_or_404(Account, card_no=id, user=request.user)
-    BillingAddress.objects.filter(card=account).delete()
+    account = get_object_or_404(Account, id=id, user=request.user)
     account.delete()
 
     return JsonResponse({'status': 'success', 'message': 'Payment method deleted successfully!'})
