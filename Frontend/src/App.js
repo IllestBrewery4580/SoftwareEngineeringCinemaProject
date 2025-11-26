@@ -24,6 +24,7 @@ import SeatingPage from './components/Checkout/SeatingPage';
 import PrivateRoutes from './components/App/PrivateRoute';
 import Checkout from './components/Checkout/Checkout';
 import { bookingFacade, authFacade } from './facade/cinemaFacade';
+import OrderHistory from './components/Account/OrderHistory';
 
 function App() {
   // State management
@@ -153,6 +154,7 @@ function App() {
         <Routes>
           <Route element={<PrivateRoutes/>}>
             <Route path="/profile" element={<Profile />}></Route>
+            <Route path="/profile/orderhistory" element={<OrderHistory />}></Route>
             <Route path="/manage" element={<Manage/>}></Route>
             <Route path="/managemovies" element={<ManageMovies 
               movies={movies}/>}></Route>
