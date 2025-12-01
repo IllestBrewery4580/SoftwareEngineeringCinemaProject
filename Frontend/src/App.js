@@ -26,7 +26,6 @@ import Checkout from './components/Checkout/Checkout';
 import OrderHistory from './components/Account/OrderHistory';
 import OrderConfirmation from './components/Checkout/OrderConfirmation';
 import { bookingFacade, authFacade } from './facade/cinemaFacade';
-import OrderHistory from './components/Account/OrderHistory';
 
 function App() {
   // State management
