@@ -1,8 +1,6 @@
 from rest_framework import serializers
-from .models import Booking, Ticket, TicketType
+from .models import Booking, Ticket
 from movie.models import Seat, MovieShow
-from .factories import AdultTicketFactory, SeniorTicketFactory, ChildTicketFactory
-from decimal import Decimal
 
 class BookingSeatSerializer(serializers.ModelSerializer):
     seat_id = serializers.PrimaryKeyRelatedField(
@@ -17,10 +15,11 @@ class BookingSeatSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     seats = BookingSeatSerializer(many=True, write_only=True)
     show = serializers.PrimaryKeyRelatedField(queryset=MovieShow.objects.all())
+    card4 = serializers.StringRelatedField()
 
     class Meta:
         model = Booking
-        fields = ["id", "user", "show", "seats", "card", "total_price", "no_of_tickets", "booking_time"]
+        fields = ["id", "user", "show", "seats", "card", "total_price", "no_of_tickets", "booking_time", "card4"]
         read_only_fields = ["id", "total_price", "booking_time"]
 
     def validate(self, data):
@@ -32,34 +31,3 @@ class BookingSerializer(serializers.ModelSerializer):
             if Ticket.objects.filter(booking__show=show, seat=s).exists():
                 raise serializers.ValidationError(f"Seat {s} already reserved.")
         return data
-
-    def create(self, validated_data):
-        seats_data = validated_data.pop("seats")
-        validated_data["total_price"] = 0.00    
-        booking = Booking.objects.create(**validated_data)
-        tickets = {
-            "Adult": AdultTicketFactory(),
-            "Senior": SeniorTicketFactory(),
-            "Child": ChildTicketFactory()
-        }
-        
-        total_price = Decimal('0.00')
-        for s in seats_data:
-            seat = s["seat"]
-            ticket_type = TicketType.objects.get(name=s["ticket_type"])
-            factory = tickets.get(ticket_type.name)
-            ticket = factory.order_ticket()
-            price = ticket.get_price()
-
-            Ticket.objects.create(
-                booking=booking,
-                seat=seat,
-                ticket_type=ticket_type,
-                price=price
-            )
-
-            total_price += price
-
-        booking.total_price = total_price
-        booking.save()
-        return booking

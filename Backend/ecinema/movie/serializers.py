@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Movie, MovieShow, Seat
 from booking.models import Ticket
 from django.utils.timezone import localtime
+from django.utils import timezone
+from django.db import models
 
 class MovieShowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,17 +50,39 @@ class MovieSerializer(serializers.ModelSerializer):
 
 class SeatSerializer(serializers.ModelSerializer):
     is_reserved = serializers.SerializerMethodField()
+    held_by_me = serializers.SerializerMethodField()
 
     class Meta:
         model = Seat
-        fields = ["id", "row_number", "seat_number", "is_reserved", 'auditorium']
+        fields = ["id", "row_number", "seat_number", "is_reserved", 'held_by_me', 'auditorium']
 
     def get_is_reserved(self, obj):
         show = self.context.get("show")
         if not show:
             return False
-        return Ticket.objects.filter(booking__show=show, seat=obj).exists()
+        now = timezone.now()
+        
+        return Ticket.objects.filter(booking__show=show, seat=obj
+        ).filter(
+            models.Q(booking__status="CONFIRMED") |
+            models.Q(booking__status="HELD", booking__hold_expires_at__gt=now)
+        ).exists()
 
+    def get_held_by_me(self, obj):
+        show = self.context.get("show")
+        user = self.context["request"].user
+        if not show or not user.is_authenticated:
+            return False
+        
+        now = timezone.now()
+        return Ticket.objects.filter(
+            seat=obj,
+            booking__show_id=show.id,
+            booking__user=user,
+            booking__status="HELD",
+            booking__hold_expires_at__gt=now,
+        ).exists()
+    
 class ShowSerializer(serializers.ModelSerializer):
     auditorium = serializers.StringRelatedField()
 

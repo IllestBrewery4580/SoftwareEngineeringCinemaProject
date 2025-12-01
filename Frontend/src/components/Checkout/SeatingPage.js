@@ -1,8 +1,7 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchSeats } from "../../utils/fetchSeats"
-import { createBooking } from "../../utils/createBooking";
+import { fetchSeats, holdSeats, releaseSeat } from "../../utils/api"
 
 export default function SeatingPage() {
     const navigate = useNavigate();
@@ -25,6 +24,14 @@ export default function SeatingPage() {
                 setSeats(data);
 
                 if (returnSeats) {
+                    for (var seat of returnSeats) {
+                        try {
+                            await releaseSeat(showId, seat.id); // new endpoint
+                        } catch (e) {
+                            alert(`Failed to release seat ${seat.row_number}${seat.seat_number}`);
+                            return;
+                        }
+                    }
                     setSelected(returnSeats);
 
                     const types = {};
@@ -43,7 +50,7 @@ export default function SeatingPage() {
     }, [showId]);
 
     const toggleSeat = (seat) => {
-        if (seat.is_reserved) return;
+        if (seat.is_reserved && !seat.held_by_me) return;
         
         const isSelected = selected.some((s) => s.id === seat.id);
         if (!isSelected && selected.length >= noOfTickets) {
@@ -78,30 +85,21 @@ export default function SeatingPage() {
         // snapshot current selections before any async work
         const snapshotSelected = [...selected];
         const snapshotTypes = { ...ticketTypes };
-        const totalNow = snapshotSelected.reduce(
-            (sum, s) => sum + (PRICE[snapshotTypes[s.id]] ?? PRICE.Adult),
+        const seatIds = selected.map((s) => s.id);
+        const totalNow = selected.reduce(
+            (sum, s) => sum + PRICE[ticketTypes[s.id]],
             0
         );
 
         setLoading(true);
         try {
-            /* Save this for when the user actually pays
-            await createBooking({
-                show: showId,
-                no_of_tickets: snapshotSelected.length,
-                seats: snapshotSelected.map((s) => ({
-                    seat_id: s.id,
-                    ticket_type: snapshotTypes[s.id],
-                })),
-            });
-            // refresh and proceed (or send to checkout)
-            setSelected([]);
-            setTicketTypes({});
-            */
+            const hold = await holdSeats(showId, seatIds);
             setSeats(await fetchSeats(showId));
             // example: go to checkout with summary
             navigate("/booking/checkout", {
                 state: {
+                    bookingId: hold.bookingId,
+                    holdExpiresAt: hold.holdExpiresAt,
                     showId,
                     total: totalNow,
                     seats: snapshotSelected.map((s) => ({
@@ -189,7 +187,7 @@ export default function SeatingPage() {
             <div className={`grid grid-cols-5 gap-2 mb-6`}>
                 {seats.map((seat) => {
                     const isSelected = selected.some((s) => s.id === seat.id);
-                    const disabled = seat.is_reserved;
+                    const disabled = seat.is_reserved && !seat.held_by_me;
                     return (
                         <button
                             key={seat.id}

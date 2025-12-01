@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import PromoCodeBox from "./PromoCodeBox";
+import AddPayment from "./AddPayment";
+import { createBooking } from "../../utils/api";
 
 const Checkout = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const {showId, total, seats, movie, showtime} = location.state || {};
+    const {bookingId, showId, total, seats, movie, showtime} = location.state || {};
     const [applied, setApplied] = useState(false);
+    const [methods, setMethods] = useState([]);
+    const [paymentId, setPaymentId] = useState("");
+    const [paymentForm, setPaymentForm] = useState(false);
     var [newTotal, setNewTotal] = useState(total);
+    var [discountVal, setDiscountVal] = useState(0);
 
     const handleSeating = () => {
         navigate('/booking/seatselection', {
@@ -22,14 +28,69 @@ const Checkout = () => {
         });
     }
 
+    useEffect(() => {
+        fetch('http://localhost:8000/accounts/profile/', {
+        method: 'GET',
+        credentials: 'include',
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            setMethods(data.account_data);
+        })
+        .catch((err) => {
+            console.error("Error fetching payments:", err);
+        });
+    }, []);
+
     const handlePromoCode = (discount) => {
         if (discount !== 0) {
             var discountAmount = (discount / 100) * total;
+            setDiscountVal(discount);
             setNewTotal(total - discountAmount);
             setApplied(true);
         } else {
+            setDiscountVal(0);
             setNewTotal(total);
             setApplied(false);
+        }
+    }
+
+    const handleCheckout = async () => {
+        const response = await createBooking(bookingId, {
+                show: showId,
+                no_of_tickets: seats.length,
+                seats: seats.map((s) => ({
+                    seat_id: s.id,
+                    ticket_type: s.type,
+                })),
+                card: paymentId,
+                total_price: applied ? newTotal : total,
+                discount: discountVal
+        });
+
+        if (response) {
+            alert("Booking successful!");
+            navigate('/booking/orderconfirmation', {
+                state: {
+                    booking: response,
+                    movie: movie,
+                    showtime: showtime,
+                    seats: seats,
+                }
+            });
+        } else {
+            alert("Booking failed. Please try again.");
+        }
+    }
+
+    const handlePaymentChange = (e) => {
+        const value = e.target.value
+        setPaymentId(value)
+
+        if (value === 'add') {
+            setPaymentForm(true)
+        } else {
+            setPaymentForm(false)
         }
     }
 
@@ -46,6 +107,7 @@ const Checkout = () => {
         rated = "R"
     }
 
+    console.log(methods)
     return (
         <div>
             {/* Selected Movie & Showtime */}
@@ -90,7 +152,25 @@ const Checkout = () => {
                     </div>
                 ))}
             </div>
-             
+
+            <select 
+            value={paymentId}
+            onChange={handlePaymentChange}
+            className="border border-gray-300 rounded px-4 py-2 mb-4 w-full">
+                <option value="" disabled>Select Payment Method</option>
+                {methods.map((method, index) => (
+                    <option key={index} value={method.id}>{method.card_type.charAt(0).toUpperCase() + method.card_type.slice(1)} ending in {method.card_no.substring(12)}</option>
+                ))}
+                {methods?.length < 3 ? (
+                    <option value="add">Add New Method</option>
+                ) : ('')}
+            </select>
+
+            {paymentForm && (
+                <AddPayment onSave={() => setPaymentForm(false)} />
+            )}
+            
+            <br></br>
             <div className="justify-items-end flex-col">
                 <div className="flex">
                     <PromoCodeBox onAction={handlePromoCode}/>
@@ -103,6 +183,7 @@ const Checkout = () => {
             </div>
 
             <button
+                onClick={handleCheckout}
                 className="w-full px-4 py-2 mt-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg">
                 Checkout
             </button>

@@ -2,15 +2,8 @@
 import { useState, useEffect } from "react";
 import { getCSRFToken, getCookie } from "../../utils/csrf";
 
-const Payments = ({paymentInfo, save}) => {
-    const [methods, setMethods] = useState([]);
-
-    useEffect(() => {
-        // Initialize with existing payment info
-        if (paymentInfo.length > 0) {
-            setMethods(paymentInfo);
-        }
-    }, [paymentInfo]);
+const Payments = ({paymentInfo, save, setMethods}) => {
+    const methods = paymentInfo
 
     const handleMethodChange = (id, field, value) => {
         setMethods(prev =>
@@ -52,7 +45,8 @@ const Payments = ({paymentInfo, save}) => {
             address_line: '',
             city: '',
             state: '',
-            zipcode: ''
+            zipcode: '',
+            new: true
         }]);
     };
 
@@ -62,6 +56,9 @@ const Payments = ({paymentInfo, save}) => {
                 !method.address_line || !method.city || !method.state || !method.zipcode) {
                 alert('Please fill out all fields for each payment method before saving.');
                 return;
+            }
+            if (method.new === true) {
+                method.id = null;
             }
         }
         
@@ -83,9 +80,11 @@ const Payments = ({paymentInfo, save}) => {
         }
     };
 
-    if (save === true) {
-        handleSaveAll();
-    }
+    useEffect(() => {
+        if (save === true) {
+            handleSaveAll();
+        }
+    }, [save]);
 
     return(
         <div className="payments-container border max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">

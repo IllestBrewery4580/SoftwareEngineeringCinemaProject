@@ -34,6 +34,10 @@ import Payments from './Payments'
         setHomeAddress(prev => ({...prev, [field]: value}));
     }
 
+    const handleGoOrderHistory = () => {
+        navigate('/profile/orderhistory');
+    }
+
     useEffect(() => {
         fetch('http://localhost:8000/accounts/profile/', {
         method: 'GET',
@@ -77,7 +81,6 @@ import Payments from './Payments'
                         lname: lname,
                         phone: phone,
                         enroll_for_promotions: document.getElementById('promotions').checked,
-                        payment: methods,
                         homeAddress: homeAddress,
                     }),
                     credentials:'include',
@@ -87,7 +90,7 @@ import Payments from './Payments'
                 if(response.ok) {
                     alert("Your profile has been updated!");
                     setSave(true);
-                    <Payments paymentInfo={methods} save={save}/>
+                    <Payments paymentInfo={methods} save={save} setMethods={setMethods}/>
                 } else {
                     alert(data.message)
                 }
@@ -142,7 +145,7 @@ import Payments from './Payments'
                 </div>
                 <h1 className="pb-2 text-center text-lg">Payment Information</h1>
                 <hr className="pb-6 "></hr>
-                <Payments paymentInfo={methods} save={save}/>
+                <Payments paymentInfo={methods} save={save} setMethods={setMethods}/>
                 <hr className='mt-4 mb-1'></hr>
                 <h1 className="text-center text-lg pt-2">Address</h1>
                 <div className="flex flex-col items-center justify-center md:flex-row gap-4 mb-6">
@@ -180,12 +183,13 @@ import Payments from './Payments'
                 <div className='flex flex-row justify-end items-right pb-4 text-lg'>
                     <label className='flex justify-right text-right gap-2'>
                         <input id="promotions" style={{transform:"scale(1.1"}} type='checkbox' checked={promotion} onChange={handlePromotion}/>
-                        Recieve Promotions
+                        Receive Promotions
                     </label>
                 </div>
                 <div className="flex flex-wrap md:flex-row gap-4 mb-6 justify-between">
                     <button onClick={handleGoBack} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">← Go Back</button>
                     <button onClick={handleNewPass} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">Change your Passowrd</button>
+                    <button onClick={handleGoOrderHistory} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">View Order History</button>
                     <button onClick={handleSubmit} className="align-right bg-blue-700 pt-2 pb-2 pl-4 pr-4 rounded hover:bg-blue-900 text-white transition-colors">Done</button>
                 </div>
             </div>

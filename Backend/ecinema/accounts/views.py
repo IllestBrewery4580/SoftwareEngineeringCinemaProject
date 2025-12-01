@@ -428,7 +428,7 @@ def save_payment(user, methods):
                 # Rollback account if address creatoion fails
                 if 'account' in locals():
                     account.delete()
-                return JsonResponse({'error': str(e)}, status=400)
+                continue
     
 @login_required
 @require_http_methods(["DELETE"])
