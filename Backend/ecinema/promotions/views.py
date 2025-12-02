@@ -32,13 +32,29 @@ def promotion_list(request):
     return JsonResponse({'status': 'success', 'promotions': promo_list})
 
 def validate_promo(request, promo_code):
-    promotions = Promotion.objects.all().order_by("-start_date")
-    if promo_code:
-        promotions = promotions.filter(promo_code=promo_code)
-        if promotions.exists():
-            return JsonResponse({'status': 'success', 'promotions': list(promotions.values())})
-        return JsonResponse({'status': 'error', 'promotions': [], 'message': 'Invalid promotion code.'})
-    return JsonResponse({'status': 'error', 'message': 'Promotion code not provided.'})
+    if not promo_code.strip():
+        return JsonResponse({
+            'status': 'success',
+            'promotion': None,
+            'message': 'No promo code applied.'
+        })
+    try:
+        promo = Promotion.objects.get(promo_code=promo_code)
+        return JsonResponse({
+            'status': 'success',
+            'promotion': {
+                'promo_code': promo.promo_code,
+                'discount': str(promo.discount_percent),
+                'start_date': promo.start_date,
+                'end_date': promo.end_date,
+                'description': promo.description,
+            }
+        })
+    except Promotion.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid promotion code.'
+        }, status=404)
 
 @staff_member_required
 def email_promotion(request, promo_id):
