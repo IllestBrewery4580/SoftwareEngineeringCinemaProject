@@ -6,6 +6,7 @@ import {getCookie} from '../../utils/csrf'
 const ResetPassword = () => {
     const [newPassword, setNewPassword] = useState('');
     const [newPassword2, setNewPassword2] = useState('');
+    const [message, setMessage] = useState('');
     const handleNewPassword = (newPassword) => setNewPassword(newPassword);
     const handleNewPassword2 = (newPassword2) => setNewPassword2(newPassword2);
     const navigate = useNavigate();
@@ -13,6 +14,11 @@ const ResetPassword = () => {
     const csrftoken = getCookie("csrftoken");
     const handleSubmit = async() => {
         try {
+            if (newPassword === '' || newPassword2 === '') {
+                setMessage("Please enter all fields.")
+                return;
+            }
+            
             const response = await fetch("http://localhost:8000/accounts/newpassword/", {
                 method: "POST",
                 headers: {
@@ -26,11 +32,11 @@ const ResetPassword = () => {
             if(data.status === 'success') {
                 navigate('/login');
             } else {
-                alert(data.message);
+                setMessage(data.message);
             }
         } catch (err) {
             console.error("Login error:", err);
-            alert("An error occurred");
+            setMessage("An error occurred");
         }
     }
 
@@ -41,6 +47,7 @@ const ResetPassword = () => {
                     <h1 className='text-center font-bold text-lg'>Change your Password</h1>
                 </div>
                 <hr className='pb-2'></hr>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
                 <h1 className='pt-3'>New Password:</h1>
                 <div className="flex flex-col md:flex-row gap-4">
                     <input

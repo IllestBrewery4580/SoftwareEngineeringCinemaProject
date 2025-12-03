@@ -10,9 +10,9 @@ export async function createBooking(bookingId, payload) {
         credentials:'include',
         body: JSON.stringify(payload),
     });
-
-    if (!r.ok) throw new Error("Error. Could not create booking.");
-    return r.json();
+    
+    const response = await r.json()
+    return response;
 }
 
 export async function holdSeats(showId, seatIds, ticketTypeId=null) {
@@ -29,9 +29,8 @@ export async function holdSeats(showId, seatIds, ticketTypeId=null) {
         }),
     });
 
-    if (!response.ok) throw new Error("Could not hold seats.");
-
-    return response.json();
+    const res = await response.json()
+    return res;
 }
 
 export async function releaseSeat(showId, seatId) {
@@ -44,12 +43,8 @@ export async function releaseSeat(showId, seatId) {
         },
     });
 
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Failed to release seat");
-    }
-
-    return res.json();
+    const response = await res.json()
+    return response;
 }
 
 export async function fetchSeats(showId) {
@@ -61,6 +56,6 @@ export async function fetchSeats(showId) {
         credentials: 'include'
     });
     
-    if (!r.ok) throw new Error("Failed to load seats");
-    return r.json();
+    const response = await r.json()
+    return response;
 }

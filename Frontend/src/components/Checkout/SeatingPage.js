@@ -13,6 +13,7 @@ export default function SeatingPage() {
     const [selected, setSelected] = useState([]);
     const [ticketTypes, setTicketTypes] = useState({});
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('')
 
     const PRICE = { Adult: 12.5, Senior: 10.0, Child: 8.0 };
 
@@ -28,7 +29,7 @@ export default function SeatingPage() {
                         try {
                             await releaseSeat(showId, seat.id); // new endpoint
                         } catch (e) {
-                            alert(`Failed to release seat ${seat.row_number}${seat.seat_number}`);
+                            setMessage(`Failed to release seat ${seat.row_number}${seat.seat_number}`);
                             return;
                         }
                     }
@@ -42,7 +43,7 @@ export default function SeatingPage() {
                     setTicketTypes(types);
                 }
             } catch (e) {
-                alert("Failed to load seats");
+                setMessage("Failed to load seats");
             } finally {
                 setLoading(false);
             }
@@ -77,10 +78,11 @@ export default function SeatingPage() {
     const total = selected.reduce((sum, s) => sum + (PRICE[ticketTypes[s.id]] ?? PRICE.Adult), 0);
 
     const book = async () => {
-        if (!selected.length) return alert("Pick at least one seat.");
+        if (!selected.length) return setMessage("Pick at least one seat.");
+        if (selected.length < noOfTickets) return setMessage("Please finish selecting all tickets.")
         // ensure each selected seat has a type
         for (const s of selected) {
-            if (!ticketTypes[s.id]) return alert(`Choose a ticket type for seat ${s.row_number}${s.seat_number}`);
+            if (!ticketTypes[s.id]) return setMessage(`Choose a ticket type for seat ${s.row_number}${s.seat_number}`);
         }
         // snapshot current selections before any async work
         const snapshotSelected = [...selected];
@@ -112,7 +114,7 @@ export default function SeatingPage() {
                 },
             });
         } catch (e) {
-            alert(e.message);
+            setMessage(e.message);
         } finally {
             setLoading(false);
         }
@@ -183,6 +185,7 @@ export default function SeatingPage() {
 
             <h3 className="text-xl font-semibold mb-4 pt-4">Seat Selection</h3>
             {loading && <p>Loading…</p>}
+            {message && <p className="text-red-600">{message}</p>}
 
             <div className={`grid grid-cols-5 gap-2 mb-6`}>
                 {seats.map((seat) => {

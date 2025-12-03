@@ -15,6 +15,12 @@ def create_promotion(request):
     if request.method == "POST":
         data = json.loads(request.body)
         form = PromotionForm(data)
+        code = data.get('promo_code')
+
+        if Promotion.objects.filter(promo_code=code).exists():
+                messages.success(request, "Promotion already exists.")
+                return JsonResponse({"status": "error", "message": "Promotion already exists."})
+
         if form.is_valid():
             promo = form.save()
             messages.success(request, "Promotion created successfully!")

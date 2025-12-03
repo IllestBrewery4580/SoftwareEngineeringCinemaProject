@@ -12,6 +12,7 @@ const Checkout = () => {
     const [methods, setMethods] = useState([]);
     const [paymentId, setPaymentId] = useState("");
     const [paymentForm, setPaymentForm] = useState(false);
+    const [message, setMessage] = useState('');
     var [newTotal, setNewTotal] = useState(total);
     var [discountVal, setDiscountVal] = useState(0);
 
@@ -56,6 +57,11 @@ const Checkout = () => {
     }
 
     const handleCheckout = async () => {
+        if (paymentId === '') {
+            setMessage("Please select a payment method!")
+            return;
+        }
+
         const response = await createBooking(bookingId, {
                 show: showId,
                 no_of_tickets: seats.length,
@@ -68,8 +74,7 @@ const Checkout = () => {
                 discount: discountVal
         });
 
-        if (response) {
-            alert("Booking successful!");
+        if (response.status === "success") {
             navigate('/booking/orderconfirmation', {
                 state: {
                     booking: response,
@@ -78,8 +83,9 @@ const Checkout = () => {
                     seats: seats,
                 }
             });
-        } else {
-            alert("Booking failed. Please try again.");
+            setMessage('')
+        } else if (response.status === "error") {
+            setMessage("Booking failed. " + response.detail);
         }
     }
 
@@ -107,7 +113,6 @@ const Checkout = () => {
         rated = "R"
     }
 
-    console.log(methods)
     return (
         <div>
             {/* Selected Movie & Showtime */}
@@ -152,6 +157,7 @@ const Checkout = () => {
                     </div>
                 ))}
             </div>
+            {message && <p className="mb-2 text-red-600">{message}</p>}
 
             <select 
             value={paymentId}

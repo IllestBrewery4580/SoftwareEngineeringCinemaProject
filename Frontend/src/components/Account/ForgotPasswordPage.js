@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState(null);
+    const [message, setMessage] = useState('')
     const handleEmail = (email) => setEmail(email);
     const navigate = useNavigate();
     
@@ -33,11 +34,11 @@ export default function ForgotPasswordPage() {
             if(data.status === 'success'){
                 navigate('/login/forgotpassword/verify');
             } else {
-                alert(data.message);
+                setMessage(data.message);
             }
         } catch (err) {
             console.error("Error with password recovery:", err);
-            alert("An error occurred");
+            setMessage("An error occurred");
         }
     }
 
@@ -47,6 +48,7 @@ export default function ForgotPasswordPage() {
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <h1 className='font-bold text-center text-lg'>Password Recovery</h1>
                 </div>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <h3>Enter email:</h3>
                 </div>

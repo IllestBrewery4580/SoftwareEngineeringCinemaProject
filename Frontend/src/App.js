@@ -84,7 +84,6 @@ function App() {
   const handleLogout = async () => {
     try {
       await authFacade.logout();
-      alert('Logged out successfully.');
       setIsLoggedIn(false);
       navigate("/");
     } catch (err) {

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { getCSRFToken, getCookie } from "../../utils/csrf";
 
 const AddPayment = ({onSave}) => {
+    const[message, setMessage] = useState('');
+
     const [method, setMethod] = useState({
         card_type: 'credit',
         card_no: '',
@@ -23,7 +25,7 @@ const AddPayment = ({onSave}) => {
         for (let key in method) {
             if (key === 'id') continue;
             if (!method[key]) {
-                alert('Please fill out all fields before saving.');
+                setMessage('Please fill out all fields before saving.');
                 return;
             }
         }
@@ -40,18 +42,19 @@ const AddPayment = ({onSave}) => {
             const data = await res.json();
             console.log(data)
 
-            if (!res.ok) throw new Error(data.error || 'Error saving payment info');
-            alert('Payment methods saved successfully!');
+            if (!res.ok) setMessage(data.error || 'Error saving payment info');
+            setMessage('Payment methods saved successfully!');
             if(onSave) onSave();
 
         } catch (err) {
-            alert('Error: ' + err.message);
+            setMessage('Error: ' + err.message);
         }
     };
 
     return(
         <div className="payments-container border max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
             <div>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
                 <div className="border py-2 rounded-lg shadow-md mb-4">
                     <div className='flex flex-row justify-between px-10'>
                     <div className='flex flex-row items-center'>

@@ -6,6 +6,7 @@ const AdminLogin = ( {onLoginSuccess} ) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remeber, setRemeber] = useState(false);
+  const [message, setMessage] = useState('');
   const handleEmail = (email) => setEmail(email);
   const handlePassword = (password) => setPassword(password);
   const handleRemember = () => {
@@ -32,7 +33,7 @@ const AdminLogin = ( {onLoginSuccess} ) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      alert("Please enter both fields");
+      setMessage("Please enter both fields");
       return;
     }
         
@@ -56,20 +57,22 @@ const AdminLogin = ( {onLoginSuccess} ) => {
         onLoginSuccess();
         navigate('/');
       } else {
-        alert(data.message);
+        setMessage(data.message);
       }
     } catch (err) {
         console.error("Login error:", err);
-        alert("An error occured. ");
+        setMessage("An error occured logging you in. Try again later.");
     }
   };
   
   return (
     <div className= "flex flex-col justify-center">
-      <div className="bg-white p-6 pb-2 rounded-lg shadow-md">
-        <div className="flex flex-col justify-center md:flex-row gap-4 mb-6">
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex flex-col justify-center md:flex-row gap-4 mb-4">
         <h1 className='text-center font-bold text-lg'>Welcome Back!</h1>
+        <hr></hr>
         </div>
+        {message && <p className="mb-3 text-center text-red-600">{message}</p>}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input
               type="text"

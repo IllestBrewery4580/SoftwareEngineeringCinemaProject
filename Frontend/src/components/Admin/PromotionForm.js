@@ -48,6 +48,11 @@ export default function PromotionForm() {
                 }),
             });
 
+            const r = await res.json()
+            if (r.status === "error") {
+                setMessage(r.message)
+            }
+
             if (res.redirected) {
                 setMessage("Promotion created and emails sent!");
                 setFormData({

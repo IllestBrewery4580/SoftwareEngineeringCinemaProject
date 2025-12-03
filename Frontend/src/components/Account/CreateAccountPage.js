@@ -2,6 +2,7 @@
 import React, { useState, useEffect} from 'react';
 import { getCookie } from '../../utils/csrf';
 import { useNavigate } from 'react-router-dom';
+import Payments from './Payments';
 
 export default function CreateAccountPage () {
   const [fname, setFname] = useState('');
@@ -18,6 +19,8 @@ export default function CreateAccountPage () {
           zipcode: '',
       });
   const [promotion, setPromotion] = useState(false);
+  const [save, setSave] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleFname = (fname) => setFname(fname);
   const handleLname = (lname) => setLname(lname);
@@ -29,41 +32,6 @@ export default function CreateAccountPage () {
       setPromotion(!promotion);
   }
   const navigate = useNavigate();
-
-  const addNewMethod = () => {
-        setMethods(prev => [
-            ...prev,
-            {
-            id: prev.length + 1,
-            cardNum: '',
-            cardType: '',
-            cardExp: '',
-            address_line: '',
-            city: '',
-            state: '',
-            zipcode: '',
-            country: ''
-            }
-        ]);
-    };
-
-  const removeMethod = (id) => {
-        if (methods.length > 0) {
-            setMethods(methods.filter(method => method.id !== id));
-        }
-    }
-
-  const handleMethodChange = (id, field, value) => {
-        if (field === 'cardExp') {
-            value = value.replace(/\D/g, '').substring(0, 6);
-            if (value.length > 1) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 6);
-            }
-        }
-        setMethods(prev =>
-            prev.map(m => (m.id === id ? { ...m, [field]: value } : m))
-        );
-    };
 
   const handleAddressChange = (field, value) => {
       setHomeAddress(prev => ({...prev, [field]: value}));
@@ -77,10 +45,15 @@ export default function CreateAccountPage () {
   };
 
   const handleCreateAcct = async() => {
+    const cleaned = methods.map(m => ({
+      ...m,
+      id: m.new ? null : m.id
+    }));
+
     if (fname === '' || lname === '' || phone === '' || email === '' || password === '' || password2 === '') {
-      alert("Please enter all required fields indicated with an astrerisk (*).");
+      setMessage("Please enter all required fields indicated with an astrerisk (*).");
     } else if (password !== password2) {
-      alert("Passwords do not match. Please re-enter and try again.");
+      setMessage("Passwords do not match. Please re-enter and try again.");
     } else {
       try {
         await getCSRFToken()
@@ -101,20 +74,22 @@ export default function CreateAccountPage () {
             password: password,
             enroll_for_promotions: document.getElementById('promotions').checked,
             homeAddress: homeAddress,
+            methods: cleaned
         }),
         });
         const data = await response.json()
 
         if(data.status === 'success') {
-          navigate('/create/verification');
+          setSave(true);
         } else {
-          alert(data.message);
+          setMessage(data.message);
         }
       } catch (err) {
         console.error("Creation error:", err);
-        alert("An error occurred");
+        setMessage("An error occurred");
       }
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   
   return (<>
@@ -122,6 +97,7 @@ export default function CreateAccountPage () {
       <div className="bg-white p-6 pb-2 rounded-lg shadow-md w-500">
           <h1 className="pb-1 text-center font-bold text-xl">Create Your Account</h1>
           <hr></hr>
+          {message && <p className="mt-4 text-center text-red-600">{message}</p>}
           <div className='flex flex-row justify-center pt-4 gap-4'>
             <div className='flex flex-col w-2/5'>
               <h1 className="text-left text-lg">First Name *</h1>
@@ -188,112 +164,19 @@ export default function CreateAccountPage () {
               pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
               onChange={(e)=> handlePhone(e.target.value)}
               required={true}
+              maxLength={10}
               className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <h1 className="pb-2 text-center text-lg">Payment Information</h1>
           <hr className="pb-6 "></hr>
-          <div>
-          {methods.length > 0 ? (
-            methods.map((method) => (
-            <div key={method.id} className="border py-2 rounded-lg shadow-md mb-4">
-              <div className='flex flex-row justify-between px-10'>
-                <div className='flex flex-row'>
-                  <h1 className="pb-2 text-center">Payment Method {method.id}</h1>
-                  <h1 className='px-2'>-</h1>
-                  <div className='inline-block text-center px-2'>
-                    <input type="radio" id="credit" name="type" value="credit"/>
-                    <label for="credit">Credit</label>
-                  </div>
-                  <div className='inline-block text-center gap-2'>
-                    <input type="radio" id="debit" name="type" value="debit"/>
-                    <label for="debit">Debit</label>
-                  </div>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={() => removeMethod(method.id)}
-                  className="justify-right align-right right-2 top-2 text-gray-500 hover:text-red-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18"></path>
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
-                  </svg>
-                </button>
-              </div>
-                <div className="flex flex-wrap pt-2 items-center justify-center md:flex-row gap-4 mb-6 pl-4 pr-20">
-                  <input
-                    type="text"
-                    placeholder="Card Number"
-                    value={method.cardNum}
-                    onChange={(e) => handleMethodChange(method.id, 'cardNum', e.target.value)}
-                    className="text-center w-fill pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Expiration Date (MM/YYYY)"
-                    value={method.cardExp}
-                    onChange={(e) => handleMethodChange(method.id, 'cardExp', e.target.value)}
-                    className="text-center pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="CVV"
-                    value={method.cardCVV}
-                    onChange={(e) => handleMethodChange(method.id, 'cardCVV', e.target.value)}
-                    className="text-center pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />  
-                </div>
-                <hr></hr>
-                <h1 className="pl-10 py-2">Billing Address</h1>
-                <div className="flex flex-col items-center justify-center md:flex-row gap-4 mb-6">
-                  <input
-                    type="text"
-                    placeholder="Address Line"
-                    value={method.address_line}
-                    onChange={(e) => handleMethodChange(method.id, 'address_line', e.target.value)}
-                    className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex flex-wrap items-center justify-center md:flex-row gap-4 mb-6">
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={method.city}
-                    onChange={(e) => handleMethodChange(method.id, 'city', e.target.value)}
-                    className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={method.state}
-                    onChange={(e) => handleMethodChange(method.id, 'state', e.target.value)}
-                    className="text-center w-2/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Zipcode"
-                    value={method.zipcode}
-                    onChange={(e) => handleMethodChange(method.id, 'zipcode', e.target.value)}
-                    className="text-center w-1/4 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className='text-center border py-2 rounded-lg shadow-md'>
-              <h1>No payment methods stored. Add one below!</h1>
-            </div>
-          )}
-          </div>
-          <div className="justify-center flex py-2">
-            <button
-              type="button"
-              onClick={() => addNewMethod()}
-              disabled={methods.length >= 3}
-              className=" text-l w-full px-4 border py-2 rounded-lg shadow-sm flex items-center justify-center hover:bg-[#bbbbbb]">
-              Add Method
-            </button>
-          </div>
+          <Payments 
+            paymentInfo={methods} 
+            save={save} 
+            setMethods={setMethods} 
+            mode="register" 
+            onSaved={() => {navigate('/create/verification');
+          }}/>
           <hr className='mt-4 mb-1'></hr>
           <h1 className="text-center text-lg pt-2">Address</h1>
           <div className="flex flex-col items-center justify-center md:flex-row gap-4 mb-6">

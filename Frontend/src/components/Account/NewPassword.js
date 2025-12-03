@@ -7,6 +7,7 @@ const NewPassword = () => {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newPassword2, setNewPassword2] = useState('');
+    const [message, setMessage] = useState('');
     const handleOldPassword = (oldPassword) => setOldPassword(oldPassword);
     const handleNewPassword = (newPassword) => setNewPassword(newPassword);
     const handleNewPassword2 = (newPassword2) => setNewPassword2(newPassword2);
@@ -19,6 +20,11 @@ const NewPassword = () => {
     const csrftoken = getCookie("csrftoken");
     const handleSubmit = async() => {
         try {
+            if (newPassword === '' || newPassword2 === '') {
+                setMessage("Please enter all fields.")
+                return;
+            }
+
             const response = await fetch("http://localhost:8000/accounts/changepassword/", {
                 method: "POST",
                 headers: {
@@ -34,11 +40,11 @@ const NewPassword = () => {
             if(data.status === 'success') {
                 navigate('/');
             } else {
-                alert(data.message);
+                setMessage(data.message);
             }
         } catch (err) {
             console.error("Login error:", err);
-            alert("An error occurred");
+            setMessage("An error occurred");
         }
     }
 
@@ -49,6 +55,7 @@ const NewPassword = () => {
                     <h1 className='text-center font-bold text-lg'>Change your Password</h1>
                 </div>
                 <hr className='pb-6'></hr>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
                 <h1 className=''>Old Password:</h1>
                 <div className="flex flex-col md:flex-row gap-4">
                     <input

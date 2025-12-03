@@ -2,11 +2,14 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getCookie } from '../../utils/csrf';
+import Popup from '../Account/Popup';
 
 const ManageShowtimes = () => {
     const [movie, setMovie] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showtimes, setShowtimes] = useState([]);
+    const [message, setMessage] = useState('');
+    const [popup, setPopup] = useState(false)
 
     const navigate = useNavigate()
     const location = useLocation()
@@ -55,41 +58,42 @@ const ManageShowtimes = () => {
         return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
     };
 
-    const sortedShowtimes = showtimes
-    .map(s => ({ 
-        ...s, 
-        dateObj: new Date(s.show_start_time)
-    }))
-    .sort((a, b) => a.dateObj - b.dateObj);
+    const handlePopup = () => {
+        setPopup(!popup);
+    }
 
-    const handleShowtimeChange = (index, field, value) => {
+    const handleShowtimeChange = (id, field, value) => {
         setShowtimes(prev =>
-            prev.map((times, i) => (i === index ? { ...times, [field]: value } : times))
+            prev.map(shows => (shows.id === id ? { ...shows, [field]: value } : shows))
         );
     };
 
     const addShowtime = () => {
+        const newId = showtimes.length ? Math.max(...showtimes.map(m => m.id)) + 1 : 1;
         setShowtimes(prev => [
             ...prev,
             {
-                id: null,
+                id: newId,
                 show_start_time: '',
                 auditorium: '',
                 no_of_available_seats: 0,
+                new: true
             }
         ]);
     };
 
-    const removeShowtime = async (index) => {
-        if (movie.showtimes[index] == null) {
-            setShowtimes(prev => prev.filter((_, i) => i !== index));
+    const removeShowtime = async (id) => {
+        const showtime = showtimes.find(s => s.id === id);
+        console.log(showtime)
+        if (showtime.new  === true) {
+            setShowtimes(prev => prev.filter((_, i) => i !== id));
         } else {
             const confirmDelete = window.confirm(`Are you sure you want to delete this showtime?`);
             if (!confirmDelete) return;
 
             try {
                 const csrftoken = getCookie('csrftoken');
-                const response = await fetch(`http://localhost:8000/api/showtimes/${showtimes[index].id}/`, {
+                const response = await fetch(`http://localhost:8000/api/showtimes/${id}/`, {
                 method: "DELETE",
                 headers: {
                     "X-CSRFToken": csrftoken,
@@ -99,19 +103,32 @@ const ManageShowtimes = () => {
 
                 console.log(response)
                 if (response.status === 204) {
-                    alert("Movie showtime deleted successfully!");
-                    setShowtimes(prev => prev.filter((_, i) => i !== index));
+                    setMessage("Movie showtime deleted successfully!");
+                    setShowtimes(prev => prev.filter(s => s.id !== id));
                 } else {
-                    alert("Failed to delete movie showtime. Please try again.");
+                    setMessage("Failed to delete movie showtime. Please try again.");
                 }
             } catch (error) {
                 console.error("Error deleting movie showtime:", error);
-                alert("An error occurred while deleting the movie showtime.");
+                setMessage("An error occurred while deleting the movie showtime.");
             }
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleSubmit = async() => {
+        for (var showtime of showtimes) {
+            if (!showtime.show_start_time || !showtime.auditorium || !showtime.no_of_available_seats) {
+                setMessage("Please fill out all the required fields.")
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
+
+            if(showtime.new === true) {
+                showtime.id = null;
+            }
+        }
+
         try {
             const response = await fetch(`http://localhost:8000/api/showtimes/${movie.id}/update_showtimes/`, {
                 method: 'POST',
@@ -134,22 +151,20 @@ const ManageShowtimes = () => {
             const data = await response.json();
             console.log(data)
             if (data.status === 'success') {
-                alert('Movie showtimes updated successfully!');
-                window.location.reload();
+                handlePopup()
+                setMessage('')
             } else {
                 if (typeof data === "object") {
-                    const formattedErrors = Object.entries(data)
-                    .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
-                    .join("\n");
-                    alert(`Error updating showtimes:\n${formattedErrors}`);
+                    setMessage("A showtime is already set for that time datetime and auditorium.");
                 } else {
-                    alert("Failed to update movie showtimes.");
+                    setMessage("Failed to update movie showtimes.");
                 }
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while updating the movie showtimes.');
+            setMessage('An error occurred while updating the movie showtimes.');
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     if (!movie) {
@@ -163,7 +178,9 @@ const ManageShowtimes = () => {
                 <hr className='my-4'></hr>
                 <h1 className="pb-2 text-center text-xl font-semibold">Showtimes</h1>
                 <hr className='pb-6'></hr>
-                {sortedShowtimes.map((show, index) => (<>
+                {message && <p className="mb-3 text-red-600">{message}</p>}
+                {popup && <Popup closePopup={handlePopup}>Movie showtimes updated successfully!</Popup>}
+                {showtimes.map((show, index) => (<>
                     <div key={index} className="border py-2 rounded-lg shadow-md mb-4 p-4">
                         <h1 className="pb-2 text-lg text-center">Showtime {index + 1}</h1>
                         <hr className='py-3'></hr>
@@ -172,7 +189,7 @@ const ManageShowtimes = () => {
                         <input
                             type='datetime-local'
                             value={formatForInput(show.show_start_time)}
-                            onChange={(e) => handleShowtimeChange(index, 'show_start_time', e.target.value)}
+                            onChange={(e) => handleShowtimeChange(show.id, 'show_start_time', e.target.value)}
                             className="w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         </div>
@@ -182,7 +199,7 @@ const ManageShowtimes = () => {
                             type='text'
                             placeholder='Auditorium'
                             value={show.auditorium}
-                            onChange={(e) => handleShowtimeChange(index, 'auditorium', e.target.value)}
+                            onChange={(e) => handleShowtimeChange(show.id, 'auditorium', e.target.value)}
                             className="w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         </div>
@@ -192,12 +209,12 @@ const ManageShowtimes = () => {
                             type='number'
                             placeholder='number of available seats'
                             value={show.no_of_available_seats}
-                            onChange={(e) => handleShowtimeChange(index, 'no_of_available_seats', e.target.value)}
+                            onChange={(e) => handleShowtimeChange(show.id, 'no_of_available_seats', e.target.value)}
                             className="w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         </div>
                         <div className="flex flex-wrap md:flex-row mb-2 pr-6 justify-end">
-                            <button onClick={() => removeShowtime(index)} className="align-center bg-red-700 pt-2 pb-2 pl-4 pr-4 rounded hover:bg-red-900 text-white transition-colors">Delete</button>
+                            <button onClick={() => removeShowtime(show.id)} className="align-center bg-red-700 pt-2 pb-2 pl-4 pr-4 rounded hover:bg-red-900 text-white transition-colors">Delete</button>
                         </div>
                     </div>
                 </>))}

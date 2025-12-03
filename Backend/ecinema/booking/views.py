@@ -29,7 +29,7 @@ class BookingViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 def getUserBooking(request):
     if request.user.is_authenticated:
         user = request.user
-        bookings = Booking.objects.filter(user=user)
+        bookings = Booking.objects.filter(user=user).order_by("-booking_time")
         result = []
 
         for booking in bookings:
@@ -43,7 +43,7 @@ def getUserBooking(request):
                     "movie": booking.show.movie.title,
                     "showtime": booking.show.show_start_time
                 },
-                "card_id": booking.card.get_last4(),
+                "card_id": booking.card.get_last4() if booking.card else "----",
                 }
             tickets = booking.booking_seats.all().values(
                 'id', 'ticket_type_id__name', 'seat__auditorium__name', 'seat__row_number', 'seat__seat_number', 'price'
@@ -71,7 +71,7 @@ def hold_seats(request, show_id):
 
     if not seat_ids:
         return Response(
-            {"detail": "seatIds is required."},
+            {"status": "error", "detail": "seatIds is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -101,6 +101,7 @@ def hold_seats(request, show_id):
             if conflict:
                 return Response(
                     {
+                        "status": "error",
                         "detail": f"Seat {seat_id} is no longer available.",
                         "conflictSeat": seat_id,
                     },
@@ -143,6 +144,7 @@ def hold_seats(request, show_id):
 
     return Response(
         {
+            "status": "success",
             "bookingId": booking.id,
             "ticketIds": ticket_ids,
             "holdExpiresAt": expires_at,
@@ -167,9 +169,9 @@ def release_seat(request, show_id, seat_id):
         if booking.no_of_tickets == 0:
             booking.delete()
 
-        return Response({"detail": "Seat released"})
+        return Response({"status": "success", "detail": "Seat released"})
     except Ticket.DoesNotExist:
-        return Response({"detail": "No held seat found"}, status=404)
+        return Response({"status": "error", "detail": "No held seat found"}, status=404)
 
 # ---- CONFIRM BOOKING (HELD -> CONFIRMED) ----
 @api_view(["POST"])
@@ -182,8 +184,11 @@ def confirm_booking(request, booking_id):
 
     # Must be in HELD state
     if booking.status != "HELD":
+        print("held")
         return Response(
-            {"detail": "Booking is not in HELD state."},
+            {"status": "error",
+            "detail": "Hold expired. Please choose seats again.",
+            "message": "Booking is not in HELD state."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -191,8 +196,10 @@ def confirm_booking(request, booking_id):
     if not booking.hold_expires_at or booking.hold_expires_at <= now:
         booking.status = "CANCELLED"
         booking.save()
+        print("cancelled")
         return Response(
-            {"detail": "Hold expired. Please choose seats again."},
+            {"status": "error",
+            "detail": "Hold expired. Please choose seats again."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -245,6 +252,8 @@ def confirm_booking(request, booking_id):
     ser = BookingSerializer(booking)
 
     return Response(
-        {"detail": "Booking confirmed.", "booking": ser.data},
+        {"status": "success",
+        "detail": "Booking confirmed.", 
+        "booking": ser.data},
         status=status.HTTP_200_OK,
     )

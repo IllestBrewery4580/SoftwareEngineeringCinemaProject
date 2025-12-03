@@ -57,7 +57,7 @@ const OrderHistory = () => {
                         <div className="border py-2 rounded-lg shadow-md mb-4 p-4 max-w-4xl w-full">
                             <div key={index} className="mb-2 text-center">
                                 <div className='flex flex-row justify-between mb-2 mt-2'>
-                                    <h2 className='text-xl font-semibold'>Booking {index+1}</h2>
+                                    <h2 className='text-xl font-semibold'>Booking {bookings.length - index}</h2>
                                     <h4 className='text-xl font-semibold text-green-600'>{booking.status}</h4>
                                 </div>
                                 <p className='font-semibold'>Booked on: {formatDate(booking.booking_time)}</p>
@@ -76,7 +76,7 @@ const OrderHistory = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <p className='text-right font-semibold'>Card: {booking.card_id.slice(12)}</p>
+                                <p className='text-right font-semibold'>Card: {booking.card_id === "----" ? "----" : booking.card_id.slice(12)}</p>
                                 <p className='text-right font-semibold'>Total: {booking.total_price}</p>
                             </div>
                         </div>
