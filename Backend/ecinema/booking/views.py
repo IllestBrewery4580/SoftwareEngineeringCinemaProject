@@ -11,10 +11,9 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from .builder import BookingBuilder
 from .models import Booking, Ticket, TicketType
-from accounts.models import Account, CustomUser
 from .serializers import BookingSerializer
-from .factories import AdultTicketFactory, SeniorTicketFactory, ChildTicketFactory
 from movie.models import MovieShow, Seat
 
 # how long a temporary hold lasts
@@ -176,84 +175,40 @@ def release_seat(request, show_id, seat_id):
 # ---- CONFIRM BOOKING (HELD -> CONFIRMED) ----
 @api_view(["POST"])
 def confirm_booking(request, booking_id):
-    """
-    Turn a HELD booking into a CONFIRMED booking if it hasn't expired.
-    """
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
-    now = timezone.now()
 
-    # Must be in HELD state
-    if booking.status != "HELD":
-        print("held")
-        return Response(
-            {"status": "error",
-            "detail": "Hold expired. Please choose seats again.",
-            "message": "Booking is not in HELD state."},
-            status=status.HTTP_400_BAD_REQUEST,
+    seats = request.data.get("seats", [])
+    discount = request.data.get("discount", 0)
+    card_id = request.data.get("card")
+
+    builder = BookingBuilder(booking)
+
+    try:
+        booking = (
+            builder.ensure_held_and_valid()
+                   .apply_seats(seats)
+                   .apply_discount(discount)
+                   .with_card(card_id)
+                   .confirm()
         )
-
-    # Hold missing or expired -> cancel and ask to reselect
-    if not booking.hold_expires_at or booking.hold_expires_at <= now:
-        booking.status = "CANCELLED"
-        booking.save()
-        print("cancelled")
-        return Response(
-            {"status": "error",
-            "detail": "Hold expired. Please choose seats again."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    seats_data = request.data.get("seats", [])
-    tickets = {
-        "Adult": AdultTicketFactory(),
-        "Senior": SeniorTicketFactory(),
-        "Child": ChildTicketFactory()
-    }
-
-    total_price = Decimal('0.00')
-    for s in seats_data:
-        seat_id = s["seat_id"]
-        ticket_type = TicketType.objects.get(name=s["ticket_type"])
-        factory = tickets.get(ticket_type.name)
-        ticket = factory.order_ticket()
-        price = ticket.get_price()
-
-        ticket = booking.booking_seats.get(seat_id=seat_id)
-        ticket.ticket_type = ticket_type
-        ticket.price = price
-        ticket.save()
-
-        total_price += price
-
-    discount = Decimal(request.data.get('discount'))
-    if discount != 0:
-        total_price = total_price - ((discount / 100) * total_price)
-
-    card_id = get_object_or_404(Account, id=request.data.get('card'))
-    user = get_object_or_404(CustomUser, id=booking.user.id)
-    booking.total_price = total_price
-    booking.card = card_id
-    booking.card4 = card_id.get_last4
-    booking.status = 'CONFIRMED'
-    booking.hold_expires_at = None
-    booking.save()
+    except ValueError as e:
+        return Response({"status": "error", "detail": str(e)}, status=400)
 
     try:
         send_mail(
-            'Your booking was successful!',
-            f'We hope you enjoy the movie!',
-            'your_email@gmail.com',
-            [user.email],
-            fail_silently=False,
+            "Your booking was successful!",
+            "We hope you enjoy the movie!",
+            "your_email@gmail.com",
+            [booking.user.email],
+            fail_silently=True,
         )
-    except Exception as e:
-        print(f'Email send failed: {e}')
+    except Exception:
+        pass
 
     ser = BookingSerializer(booking)
-
     return Response(
-        {"status": "success",
-        "detail": "Booking confirmed.", 
-        "booking": ser.data},
+        {"status": "success", 
+         "detail": "Booking confirmed.", 
+         "booking": ser.data},
         status=status.HTTP_200_OK,
     )
