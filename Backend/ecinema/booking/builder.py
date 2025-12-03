@@ -12,7 +12,7 @@ class BookingBuilder:
 
     def ensure_held_and_valid(self):
         if self.booking.status != "HELD":
-            raise ValueError("Booking is not in HELD state.")
+            raise ValueError("Booking has expired. Please choose seats again.")
         if not self.booking.hold_expires_at or self.booking.hold_expires_at <= timezone.now():
             self.booking.status = "CANCELLED"
             self.booking.save()
