@@ -28,6 +28,7 @@ def register(request):
         phone = data.get('phone')
         enroll_for_promotions = data.get('enroll_for_promotions')
         home_address = data.get('homeAddress')
+        methods = data.get('methods')
 
         if User.objects.filter(email=email).exists():
             return JsonResponse({'status': 'error', 'message': 'Email already exists. Please try again.'})
@@ -40,6 +41,9 @@ def register(request):
             last_name=lname, 
             phone=phone, 
             enroll_for_promotions=enroll_for_promotions,)
+                
+        if methods:
+            save_payment(user, methods)
         
         HomeAddress.objects.create(
             user=user,
@@ -248,8 +252,8 @@ def update_profile(request):
 
         try:
             send_mail(
-                'You changed your password',
-                f'You have successfully changed your profile.',
+                'You updated your profile',
+                f'You have successfully updated your profile.',
                 'your_email@gmail.com',
                 [user.email],
                 fail_silently=False,
@@ -380,7 +384,6 @@ def getCSRFToken(request):
     return JsonResponse({'csrfToken': csrfToken})
 
 @csrf_exempt
-@login_required
 def add_payment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -426,9 +429,10 @@ def save_payment(user, methods):
                 )
             except Exception as e:
                 # Rollback account if address creatoion fails
+                print("failing", e)
                 if 'account' in locals():
                     account.delete()
-                return JsonResponse({'error': str(e)}, status=400)
+                continue
     
 @login_required
 @require_http_methods(["DELETE"])

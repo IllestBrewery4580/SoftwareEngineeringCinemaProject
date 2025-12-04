@@ -79,5 +79,5 @@ class ShowViewSet(viewsets.ReadOnlyModelViewSet):
     def seats(self, request, pk=None):
         show = self.get_object()
         seats = Seat.objects.filter(auditorium=show.auditorium).order_by("row_number", "seat_number")
-        ser = SeatSerializer(seats, many=True, context={"show": show})
+        ser = SeatSerializer(seats, many=True, context={"show": show, 'request': request})
         return Response(ser.data)

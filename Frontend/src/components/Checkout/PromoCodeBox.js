@@ -17,7 +17,7 @@ export default function PromoCodeBox( {onAction} ) {
     };
 
     if (result.status === "success") {
-        onAction(result.promotions[0].discount_percent);
+        onAction(result.promotion.discount);
     } else {
         onAction(0);
     }
@@ -38,7 +38,7 @@ export default function PromoCodeBox( {onAction} ) {
             
             {result && applied && (
                 <p className="mt-2 text-sm">
-                    {result.status === 'success' ? `Valid! Discount: ${result.promotions[0].discount_percent}%` : `Invalid: ${result.message}`}
+                    {result.status === 'success' ? `Valid! Discount: ${result.promotion.discount}%` : `Invalid: ${result.message}`}
                 </p>
             )}
         </div>

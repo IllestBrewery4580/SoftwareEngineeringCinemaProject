@@ -2,6 +2,7 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getCookie } from '../../utils/csrf';
+import Popup from '../Account/Popup';
 
 const ManageMovieDetails = () => {
     const [movie, setMovie] = useState([]);
@@ -16,6 +17,9 @@ const ManageMovieDetails = () => {
     const [poster, setPoster] = useState(null);
     const [rating, setRating] = useState('');
     const [review, setReview] = useState('');
+    const [message, setMessage] = useState('');
+    const [content, setContent] = useState('');
+    const [popup, setPopup] = useState(false);
 
     const handleTitleChange = (title) => setTitle(title);
     const handleDescriptionChange = (description) => setDescription(description);
@@ -27,6 +31,9 @@ const ManageMovieDetails = () => {
     const handlePosterChange = (file) => setPoster(file);
     const handleRatingChange = (rating) => setRating(rating);
     const handleReviewChange = (review) => setReview(review);
+    const handlePopup = () => {
+        setPopup(!popup)
+    }
     
     const navigate = useNavigate()
     const location = useLocation()
@@ -40,6 +47,7 @@ const ManageMovieDetails = () => {
                 setLoading(false);
                 setMovie(data)});
     }, [movieId]);
+    console.log(movie)
 
     useEffect(() => {
         if (movie) {
@@ -71,7 +79,7 @@ const ManageMovieDetails = () => {
 
     const handleDelete = async () => {
         if (!movie || !movie.id) {
-            alert("No movie selected to delete.");
+            setMessage("No movie selected to delete.");
             return;
         }
 
@@ -90,15 +98,16 @@ const ManageMovieDetails = () => {
             });
 
             if (response.ok) {
-                alert("Movie deleted successfully!");
+                setContent("Movie deleted successfully!")
+                handlePopup()
                 navigate("/managemovies");
                 window.location.reload();
             } else {
-                alert("Failed to delete movie. Please try again.");
+                setMessage("Failed to delete movie. Please try again.");
             }
         } catch (error) {
             console.error("Error deleting movie:", error);
-            alert("An error occurred while deleting the movie.");
+            setMessage("An error occurred while deleting the movie.");
         }
     };
 
@@ -118,6 +127,11 @@ const ManageMovieDetails = () => {
         formData.append('review_score', review);
 
         try {
+            if (!title || !description || !cast || !genre || !producer || !duration || !trailer || !rating || !review) {
+                setMessage("Please fill out of the fields below.")
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
             const response = await fetch(`http://localhost:8000/api/movies/${movie.id}/update_movie/`, {
                 method: 'POST',
                 headers: {
@@ -129,15 +143,16 @@ const ManageMovieDetails = () => {
 
             const data = await response.json();
             if (data.status === 'success') {
-                alert('Movie updated successfully!');
-                window.location.reload();
+                setContent("Movie updated successfully!")
+                handlePopup();
             } else {
-                alert('Failed to update movie. ', data.message);
+                setMessage('Failed to update movie. ', data.message);
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while updating the movie.');
+            setMessage('An error occurred while updating the movie.' + error);
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     return (<>
@@ -151,6 +166,11 @@ const ManageMovieDetails = () => {
                     />
                 </div>
 
+                {message && <p className="mt-4 text-center text-red-600">{message}</p>}
+                {popup && <Popup closePopup={() => {
+                    handlePopup();
+                    setMessage('')}}
+                >{content}</Popup>}
                 <div className="md:w-2/3 p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-3xl font-bold text-gray-800">{title}</h1>
@@ -266,7 +286,6 @@ const ManageMovieDetails = () => {
                             placeholder="Review Score"
                             value={review}
                             onChange={(e) => handleReviewChange(e.target.value)}
-                            required={true}
                             className="text-center w-4/5 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>

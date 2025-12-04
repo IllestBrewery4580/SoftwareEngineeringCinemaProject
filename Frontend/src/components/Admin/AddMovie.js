@@ -2,6 +2,7 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCookie } from '../../utils/csrf';
+import Popup from '../Account/Popup'
 
 const AddMovie = () => {
     const [title, setTitle] = useState('');
@@ -14,6 +15,8 @@ const AddMovie = () => {
     const [poster, setPoster] = useState(null);
     const [rating, setRating] = useState('');
     const [review, setReview] = useState('');
+    const [message, setMessage] = useState('');
+    const [popup, setPopup] = useState(false);
 
     const handleTitleChange = (title) => setTitle(title);
     const handleDescriptionChange = (description) => setDescription(description);
@@ -29,6 +32,10 @@ const AddMovie = () => {
     const navigate = useNavigate()
     const handleGoBack = () => {
         navigate("/manage")
+    }
+
+    const handlePopup = () => {
+        setPopup(!popup)
     }
 
     const handleSubmit = async() => {
@@ -55,16 +62,16 @@ const AddMovie = () => {
 
             const data = await response.json();
             if (response.status === 201) {
-                alert('Movie added successfully!');
-                navigate('/manage');
+                handlePopup()
             } else {
-                alert('Failed to add movie.');
+                setMessage('Failed to add movie.');
                 console.log(data.message)
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while adding the movie.');
+            setMessage('An error occurred while adding the movie.');
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     return (<>
@@ -72,6 +79,10 @@ const AddMovie = () => {
             <div className="bg-white p-6 pb-2 rounded-lg shadow-md w-500">
                 <h1 className="pb-1 text-center font-bold text-xl">Add a Movie</h1>
                 <hr className='my-4'></hr>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
+                {popup && <Popup closePopup={() => {
+                    handlePopup();
+                    navigate('/managemovies')}}>Movie added successfully!</Popup>}
                 <h1 className="text-center text-lg font-semibold">Title</h1>
                 <div className="flex flex-col items-center justify-center md:flex-row gap-4 mb-6">
                     <input

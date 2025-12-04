@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ForgotVerification = ()  => {
     const [otp, setOtp] = useState('');
+    const [message, setMessage] = useState('')
     const handleOtp = (otp) => setOtp(otp);
     const navigate = useNavigate()
     
@@ -32,14 +33,13 @@ const ForgotVerification = ()  => {
             
             const data = await response.json()
             if(data.status === 'success'){
-                alert(data.message);
                 navigate("/login/forgotpassword/resetpassword")
             } else {
-                alert(data.message)
+                setMessage(data.message)
             }
         } catch (err) {
             console.error("Error with verification:", err);
-            alert("An error occurred");
+            setMessage("An error occurred");
         }
     }
 
@@ -53,6 +53,7 @@ const ForgotVerification = ()  => {
                     <h3>A verification code has been sent to your email. Please enter it below.</h3>
                 </div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
+            {message && <p className="mb-3 text-center text-red-600">{message}</p>}
             <input
                 type="text"
                 placeholder="Verification Code"

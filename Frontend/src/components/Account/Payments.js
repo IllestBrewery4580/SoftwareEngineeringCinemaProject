@@ -1,16 +1,16 @@
 'use client'
 import { useState, useEffect } from "react";
 import { getCSRFToken, getCookie } from "../../utils/csrf";
+import Popup from "./Popup";
 
-const Payments = ({paymentInfo, save}) => {
-    const [methods, setMethods] = useState([]);
+const Payments = ({paymentInfo, save, setMethods, onSaved, mode="profile"}) => {
+    const [message, setMessage] = useState('');
+    const [popup, setPopup] = useState(false);
+    const methods = paymentInfo
 
-    useEffect(() => {
-        // Initialize with existing payment info
-        if (paymentInfo.length > 0) {
-            setMethods(paymentInfo);
-        }
-    }, [paymentInfo]);
+    const handlePopup = () => {
+        setPopup(!popup);
+    }
 
     const handleMethodChange = (id, field, value) => {
         setMethods(prev =>
@@ -19,6 +19,13 @@ const Payments = ({paymentInfo, save}) => {
     };
 
     const removeMethod = async (id) => {
+        for (let method of methods) {
+            if (method.new === true) {
+                setMethods(prev => prev.filter(method => method.id !== id));
+                return;
+            }
+        }
+        
         try {
             const csrftoken = getCookie('csrftoken');
 
@@ -30,14 +37,14 @@ const Payments = ({paymentInfo, save}) => {
                 credentials: 'include',
             });
 
-            if (!response.ok) throw new Error("Failed to delete payment method");
+            if (!response.ok) setMessage("Failed to delete payment method");
 
             // Remove from local state
             setMethods(prev => prev.filter(method => method.id !== id));
 
         } catch (err) {
             console.error(err);
-            alert("Could not delete payment method");
+            setMessage("Could not delete payment method");
         }
     };
 
@@ -52,7 +59,8 @@ const Payments = ({paymentInfo, save}) => {
             address_line: '',
             city: '',
             state: '',
-            zipcode: ''
+            zipcode: '',
+            new: true
         }]);
     };
 
@@ -60,36 +68,59 @@ const Payments = ({paymentInfo, save}) => {
         for (let method of methods) {
             if (method.card_no === '' || !method.expiration_date || method.card_cvv === '' ||
                 !method.address_line || !method.city || !method.state || !method.zipcode) {
-                alert('Please fill out all fields for each payment method before saving.');
+                setMessage('Please fill out all fields for each payment method before saving.');
+                window.scrollTo({ top: 0, behavior: "smooth" });
                 return;
             }
+            if (method.new === true) {
+                method.id = null;
+            }
+        }
+
+        if (mode === "register") {
+            if (onSaved) {onSaved(methods)}
+            return;
         }
         
         try {
             const res = await fetch("http://localhost:8000/accounts/add_payment/", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                 },
                 credentials: "include",
                 body: JSON.stringify({ methods })
             });
             const data = await res.json();
-            console.log(data)
-            if (!res.ok) throw new Error(data.error || 'Error saving payment info');
+
+            if (!res.ok) {
+                setMessage('Error saving payment info: ' + data.error);
+                return;
+            }
+
+            if(onSaved) onSaved();
             if (save === false) {
-                alert('Payment methods saved successfully!');
+                handlePopup();
+                setMessage('Payment methods saved successfully!')
             }
         } catch (err) {
             alert('Error: ' + err.message);
         }
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    if (save === true) {
-        handleSaveAll();
-    }
+    useEffect(() => {
+        if (save === true) {
+            handleSaveAll();
+        }
+    }, [save]);
 
     return(
         <div className="payments-container border max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
             <div>
+                {message && <p className="mb-3 text-center text-red-600">{message}</p>}
+                {popup && <Popup closePopup={handlePopup}>Payment methods saved successfully!</Popup>}
                 {methods.length > 0 ? (
                     methods.map((method, index) => (
                     <div key={method.id} className="border py-2 rounded-lg shadow-md mb-4">

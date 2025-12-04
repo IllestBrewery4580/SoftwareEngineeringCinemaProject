@@ -23,6 +23,8 @@ import AddMovie from './components/Admin/AddMovie';
 import SeatingPage from './components/Checkout/SeatingPage';
 import PrivateRoutes from './components/App/PrivateRoute';
 import Checkout from './components/Checkout/Checkout';
+import OrderHistory from './components/Account/OrderHistory';
+import OrderConfirmation from './components/Checkout/OrderConfirmation';
 import { bookingFacade, authFacade } from './facade/cinemaFacade';
 
 function App() {
@@ -82,7 +84,6 @@ function App() {
   const handleLogout = async () => {
     try {
       await authFacade.logout();
-      alert('Logged out successfully.');
       setIsLoggedIn(false);
       navigate("/");
     } catch (err) {
@@ -153,6 +154,7 @@ function App() {
         <Routes>
           <Route element={<PrivateRoutes/>}>
             <Route path="/profile" element={<Profile />}></Route>
+            <Route path="/profile/orderhistory" element={<OrderHistory />}></Route>
             <Route path="/manage" element={<Manage/>}></Route>
             <Route path="/managemovies" element={<ManageMovies 
               movies={movies}/>}></Route>
@@ -162,6 +164,7 @@ function App() {
             <Route path='/manage/movie_details/:movieId/showtimes' element={<ManageShowtimes/>}></Route>
             <Route path="/addmovie" element={<AddMovie />}></Route>
             <Route path="/booking/checkout" element={<Checkout />}></Route>
+            <Route path="/booking/orderconfirmation" element={<OrderConfirmation />}></Route>
           </Route>
           <Route path="/" element={<HomePage 
             searchQuery={searchQuery}
