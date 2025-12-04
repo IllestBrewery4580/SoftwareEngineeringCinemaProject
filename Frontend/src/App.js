@@ -197,7 +197,7 @@ function App() {
 
       <footer className="absolute-bottom w-full bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Team 13 - Sprint 2 CES</p>
+          <p>&copy; 2025 Team 13 - Final Demo CES</p>
         </div>
       </footer>
     </div>
