@@ -19,6 +19,13 @@ const Payments = ({paymentInfo, save, setMethods, onSaved, mode="profile"}) => {
     };
 
     const removeMethod = async (id) => {
+        for (let method of methods) {
+            if (method.new === true) {
+                setMethods(prev => prev.filter(method => method.id !== id));
+                return;
+            }
+        }
+        
         try {
             const csrftoken = getCookie('csrftoken');
 
