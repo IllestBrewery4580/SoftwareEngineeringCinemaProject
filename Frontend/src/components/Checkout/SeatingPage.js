@@ -78,6 +78,21 @@ export default function SeatingPage() {
     const total = selected.reduce((sum, s) => sum + (PRICE[ticketTypes[s.id]] ?? PRICE.Adult), 0);
 
     const book = async () => {
+        const authCheck = await fetch("http://localhost:8000/accounts/isAuth/", {
+            method: "GET",
+            credentials: "include"
+        });
+        const auth = await authCheck.json();
+
+        if (auth.status !== "success") {
+            // Redirect to login with return location
+            return navigate("/login", {
+                state: {
+                    from: "/booking/seatselection",
+                    reason: "login_required"
+                }
+            });
+        }
         if (!selected.length) return setMessage("Pick at least one seat.");
         if (selected.length < noOfTickets) return setMessage("Please finish selecting all tickets.")
         // ensure each selected seat has a type
